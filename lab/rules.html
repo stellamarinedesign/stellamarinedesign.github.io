@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Rules probe</title>
+<link rel="icon" href="/images/brand/stella-icon.png">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/themes.css">
+<link rel="stylesheet" href="/css/hub.css">
+<style>
+  .probe { display: grid; gap: var(--sp-4); max-width: 760px; }
+  .probe fieldset { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-3) var(--sp-4) var(--sp-4); display: grid; gap: var(--sp-3); grid-template-columns: 1fr 1fr; }
+  .probe legend { padding: 0 6px; font-weight: 600; }
+  .probe .wide { grid-column: 1 / -1; color: var(--text3); font-size: var(--fs-sm); }
+  .res td:first-child { width: 28px; font-weight: 700; }
+  .res .bad td { color: var(--red-text); }
+</style>
+</head>
+<body>
+<!--
+  DOES THE HUB'S firestore.rules DO WHAT IT SAYS?
+
+  There is no emulator on this PC (it needs Java), so the rules are checked
+  against the real hub project: sign in as three logins and try, as each, the
+  things the rules should allow and the things they should refuse.
+
+  Run it after every `firebase deploy --only firestore:rules`.
+
+  Nothing typed here is kept: the three sign-ins live in memory and go with
+  the tab. It writes one key document for the member (keys/<uid>/p/_probe) and
+  deletes it again, and one line in the account log, which cannot be deleted.
+-->
+<div class="app">
+  <header class="hd"><span class="hd-logo" aria-hidden="true"></span><span class="hd-title">Rules probe</span></header>
+  <main class="view">
+    <form class="probe" id="probe">
+      <fieldset><legend>A stranger</legend><p class="wide">A hub login with no directory entry. Make one in the console for this.</p>
+        <div class="field"><label for="sE">Email</label><input class="input" id="sE" type="email" autocomplete="off"></div>
+        <div class="field"><label for="sP">Password</label><input class="input" id="sP" type="password" autocomplete="off"></div></fieldset>
+      <fieldset><legend>A member</legend><p class="wide">In the directory, not a master.</p>
+        <div class="field"><label for="mE">Email</label><input class="input" id="mE" type="email" autocomplete="off"></div>
+        <div class="field"><label for="mP">Password</label><input class="input" id="mP" type="password" autocomplete="off"></div></fieldset>
+      <fieldset><legend>A master</legend><p class="wide">Its uid is in config/access.masters.</p>
+        <div class="field"><label for="aE">Email</label><input class="input" id="aE" type="email" autocomplete="off"></div>
+        <div class="field"><label for="aP">Password</label><input class="input" id="aP" type="password" autocomplete="off"></div></fieldset>
+      <div class="actions"><button class="btn primary" type="submit" id="run">Run the checks</button></div>
+      <div class="form-err" id="err" role="alert"></div>
+    </form>
+    <h2 class="h2" id="sum" hidden></h2>
+    <div class="grid-wrap" id="out" hidden><table class="acct res"><tbody id="rows"></tbody></table></div>
+  </main>
+</div>
+
+<script type="module">
+import { HUB_CONFIG } from '/core/v1/hub-impl.js';
+import { sdk } from '/js/firebase.js';
+
+const $ = (id) => document.getElementById(id);
+const refused = (e) => /permission|insufficient/i.test(`${e?.code ?? ''} ${e?.message ?? ''}`);
+
+if (!HUB_CONFIG.apiKey) {
+  $('probe').hidden = true;
+  $('sum').hidden = false;
+  $('sum').textContent = 'The hub has no Firebase project yet, so there are no rules to probe.';
+}
+
+$('probe').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  $('err').textContent = '';
+  $('run').disabled = true;
+  try {
+    const { app, auth: fa, fs } = await sdk();
+    const as = async (kind, email, password) => {
+      const name = `probe:${kind}`;
+      let a = app.getApps().find((x) => x.name === name);
+      if (!a) { a = app.initializeApp(HUB_CONFIG, name); fa.initializeAuth(a, { persistence: fa.inMemoryPersistence }); }
+      const au = fa.getAuth(a);
+      await fa.signInWithEmailAndPassword(au, email.trim(), password);
+      return { uid: au.currentUser.uid, db: fs.getFirestore(a) };
+    };
+    const stranger = await as('stranger', $('sE').value, $('sP').value);
+    const member = await as('member', $('mE').value, $('mP').value);
+    const master = await as('master', $('aE').value, $('aP').value);
+
+    const rows = [];
+    const check = async (who, what, expect, fn) => {
+      let got = 'allowed';
+      try { await fn(); } catch (e) { got = refused(e) ? 'refused' : `failed (${e?.code ?? e?.message})`; }
+      rows.push({ who, what, expect, got, ok: got === expect });
+    };
+    const K = 'p'.repeat(43);
+    const now = new Date().toISOString();
+    const dir = (x, uid) => fs.doc(x.db, 'directory', uid);
+    const key = (x, uid) => fs.doc(x.db, 'keys', uid, 'p', '_probe');
+
+    // A stranger: signed in, and nobody.
+    await check('Stranger', 'read their own (missing) directory entry', 'allowed', () => fs.getDoc(dir(stranger, stranger.uid)));
+    await check('Stranger', 'read a key of their own', 'refused', () => fs.getDoc(key(stranger, stranger.uid)));
+    await check('Stranger', 'list the directory', 'refused', () => fs.getDocs(fs.collection(stranger.db, 'directory')));
+    await check('Stranger', 'read who the masters are', 'refused', () => fs.getDoc(fs.doc(stranger.db, 'config', 'access')));
+    await check('Stranger', 'make themselves a directory entry', 'refused', () => fs.setDoc(dir(stranger, stranger.uid), { email: 'x@example.test', name: '', links: {} }));
+    await check('Stranger', 'write to the account log', 'refused', () => fs.addDoc(fs.collection(stranger.db, 'activity'), { by: stranger.uid, at: now, text: 'probe' }));
+
+    // A master sets up what the member checks need.
+    await check('Master', 'read who the masters are', 'allowed', () => fs.getDoc(fs.doc(master.db, 'config', 'access')));
+    await check('Master', 'list the directory', 'allowed', () => fs.getDocs(fs.collection(master.db, 'directory')));
+    await check('Master', 'write a key for the member', 'allowed', () => fs.setDoc(key(master, member.uid), { k: K, email: 'probe@example.test', at: now, by: master.uid }));
+    await check('Master', 'read that key', 'allowed', () => fs.getDoc(key(master, member.uid)));
+    await check('Master', 'write a key that is too short', 'refused', () => fs.setDoc(key(master, member.uid), { k: 'short', email: 'probe@example.test' }));
+    await check('Master', 'write a key with a field the rules do not know', 'refused', () => fs.setDoc(key(master, member.uid), { k: K, email: 'probe@example.test', extra: true }));
+    await check('Master', 'change who the masters are', 'refused', () => fs.setDoc(fs.doc(master.db, 'config', 'access'), { masters: [master.uid, member.uid] }));
+    await check('Master', 'change the address on a directory entry', 'refused', () => fs.updateDoc(dir(master, member.uid), { email: 'someone-else@example.test' }));
+    await check('Master', 'write to the account log as themselves', 'allowed', () => fs.addDoc(fs.collection(master.db, 'activity'), { by: master.uid, byEmail: '', at: now, action: 'probe', text: 'Rules probe run.' }));
+    await check('Master', 'write to the account log as somebody else', 'refused', () => fs.addDoc(fs.collection(master.db, 'activity'), { by: member.uid, at: now, text: 'probe' }));
+
+    // A member: their own entry and their own keys, to read, and nothing more.
+    await check('Member', 'read their own directory entry', 'allowed', () => fs.getDoc(dir(member, member.uid)));
+    await check('Member', 'read the master\'s directory entry', 'refused', () => fs.getDoc(dir(member, master.uid)));
+    await check('Member', 'read their own key', 'allowed', () => fs.getDoc(key(member, member.uid)));
+    await check('Member', 'read the master\'s key', 'refused', () => fs.getDoc(key(member, master.uid)));
+    await check('Member', 'change their own key', 'refused', () => fs.setDoc(key(member, member.uid), { k: K, email: 'probe@example.test' }));
+    await check('Member', 'change their own directory entry', 'refused', () => fs.updateDoc(dir(member, member.uid), { name: 'Probe' }));
+    await check('Member', 'list the directory', 'refused', () => fs.getDocs(fs.collection(member.db, 'directory')));
+    await check('Member', 'read the account log', 'refused', () => fs.getDocs(fs.collection(member.db, 'activity')));
+
+    await check('Master', 'delete the probe key again', 'allowed', () => fs.deleteDoc(key(master, member.uid)));
+
+    const bad = rows.filter((r) => !r.ok);
+    $('sum').hidden = false;
+    $('sum').textContent = bad.length ? `${bad.length} of ${rows.length} NOT as the rules say` : `All ${rows.length} as the rules say`;
+    $('rows').replaceChildren(...rows.map((r) => {
+      const tr = document.createElement('tr');
+      if (!r.ok) tr.className = 'bad';
+      for (const text of [r.ok ? 'ok' : 'NO', r.who, r.what, r.ok ? r.got : `${r.got}, expected ${r.expect}`]) { const td = document.createElement('td'); td.textContent = text; tr.append(td); }
+      return tr;
+    }));
+    $('out').hidden = false;
+  } catch (e) {
+    $('err').textContent = `Could not run: ${e?.code ?? e?.message ?? e}. Check the three sign-ins.`;
+  } finally {
+    $('run').disabled = false;
+  }
+});
+</script>
+</body>
+</html>

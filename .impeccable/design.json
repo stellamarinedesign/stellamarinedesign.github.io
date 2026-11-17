@@ -1,0 +1,825 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-17T03:03:59+00:00",
+  "title": "Design System: Stella hub",
+  "extensions": {
+    "colorMeta": {
+      "black-night": {
+        "role": "neutral",
+        "displayName": "Black Night",
+        "canonical": "#0e0a0a",
+        "tonalRamp": [
+          "#0d0a0a",
+          "#282424",
+          "#454040",
+          "#655f5f",
+          "#868080",
+          "#a9a3a3",
+          "#ccc7c7",
+          "#efeeee"
+        ]
+      },
+      "band": {
+        "role": "neutral",
+        "displayName": "Band",
+        "canonical": "#1c1c1b",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252524",
+          "#424241",
+          "#616160",
+          "#828281",
+          "#a5a5a3",
+          "#c8c8c8",
+          "#eeeeee"
+        ]
+      },
+      "shadow-grey": {
+        "role": "neutral",
+        "displayName": "Shadow Grey",
+        "canonical": "#282827",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252524",
+          "#424241",
+          "#616160",
+          "#828281",
+          "#a5a5a3",
+          "#c8c8c8",
+          "#eeeeee"
+        ]
+      },
+      "chip-grey": {
+        "role": "neutral",
+        "displayName": "Chip Grey",
+        "canonical": "#333331",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#424240",
+          "#61615f",
+          "#828280",
+          "#a5a5a2",
+          "#c9c9c7",
+          "#eeeeee"
+        ]
+      },
+      "rule-grey": {
+        "role": "neutral",
+        "displayName": "Rule Grey",
+        "canonical": "#454542",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#42423f",
+          "#61615e",
+          "#82827f",
+          "#a5a5a1",
+          "#c9c9c6",
+          "#eeeeee"
+        ]
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Strong Rule",
+        "canonical": "#5e5e5a",
+        "tonalRamp": [
+          "#0b0b09",
+          "#252522",
+          "#42423e",
+          "#61615d",
+          "#82827e",
+          "#a5a5a1",
+          "#c9c9c6",
+          "#eeeeed"
+        ]
+      },
+      "text-white": {
+        "role": "neutral",
+        "displayName": "White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a4a4a4",
+          "#c8c8c8",
+          "#eeeeee"
+        ]
+      },
+      "text-ash": {
+        "role": "neutral",
+        "displayName": "Ash",
+        "canonical": "#d2d2ce",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252522",
+          "#42423f",
+          "#61615e",
+          "#82827e",
+          "#a5a5a1",
+          "#c9c9c6",
+          "#eeeeed"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Muted Ash",
+        "canonical": "#b0b0ab",
+        "tonalRamp": [
+          "#0b0b09",
+          "#252522",
+          "#42423e",
+          "#61615d",
+          "#82827e",
+          "#a5a5a0",
+          "#c9c9c5",
+          "#eeeeed"
+        ]
+      },
+      "upsdell-red": {
+        "role": "primary",
+        "displayName": "Upsdell Red",
+        "canonical": "#af1f24",
+        "tonalRamp": [
+          "#200000",
+          "#4d0005",
+          "#80000e",
+          "#b02025",
+          "#d84a46",
+          "#fe726a",
+          "#feb2aa",
+          "#ffe9e6"
+        ]
+      },
+      "burning-star-red": {
+        "role": "primary",
+        "displayName": "Burning Star Red",
+        "canonical": "#ea372e",
+        "tonalRamp": [
+          "#210000",
+          "#4d0001",
+          "#800004",
+          "#b70a0d",
+          "#e7332b",
+          "#ff7363",
+          "#feb2a7",
+          "#ffe9e5"
+        ]
+      },
+      "link-coral": {
+        "role": "secondary",
+        "displayName": "Link Coral",
+        "canonical": "#ff7369",
+        "tonalRamp": [
+          "#200000",
+          "#4d0004",
+          "#80010c",
+          "#ae2525",
+          "#d64d47",
+          "#fc756b",
+          "#feb2aa",
+          "#ffe9e6"
+        ]
+      },
+      "signal-amber": {
+        "role": "secondary",
+        "displayName": "Signal Amber",
+        "canonical": "#d97706",
+        "tonalRamp": [
+          "#180600",
+          "#3b1b00",
+          "#643300",
+          "#904d03",
+          "#bf6803",
+          "#ea8931",
+          "#fcb883",
+          "#ffeadb"
+        ]
+      },
+      "signal-amber-bg": {
+        "role": "secondary",
+        "displayName": "Signal Amber Tint",
+        "canonical": "#2b1f08",
+        "tonalRamp": [
+          "#100a02",
+          "#2e230e",
+          "#4d4029",
+          "#6d5f47",
+          "#8f8067",
+          "#b1a389",
+          "#d2c7b5",
+          "#f2eee8"
+        ]
+      },
+      "signal-amber-text": {
+        "role": "secondary",
+        "displayName": "Signal Amber Text",
+        "canonical": "#f2b84b",
+        "tonalRamp": [
+          "#130900",
+          "#332100",
+          "#573c00",
+          "#7e5905",
+          "#a87807",
+          "#d09a2c",
+          "#e8c282",
+          "#faedd7"
+        ]
+      },
+      "toast-green": {
+        "role": "secondary",
+        "displayName": "Toast Green",
+        "canonical": "#1f7a3a",
+        "tonalRamp": [
+          "#001002",
+          "#002e0e",
+          "#00511e",
+          "#167434",
+          "#419755",
+          "#68ba78",
+          "#a2d9aa",
+          "#e2f4e4"
+        ]
+      },
+      "workshop-white": {
+        "role": "neutral",
+        "displayName": "Workshop White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a4a4a4",
+          "#c8c8c8",
+          "#eeeeee"
+        ]
+      },
+      "workshop-band": {
+        "role": "neutral",
+        "displayName": "Workshop Band",
+        "canonical": "#f5f4f0",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#262522",
+          "#43423f",
+          "#62615e",
+          "#83827e",
+          "#a5a5a1",
+          "#c9c8c6",
+          "#efeeed"
+        ]
+      },
+      "workshop-chip": {
+        "role": "neutral",
+        "displayName": "Workshop Chip",
+        "canonical": "#eceae4",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262521",
+          "#43423d",
+          "#63615c",
+          "#84827c",
+          "#a6a49f",
+          "#cac8c5",
+          "#efeeed"
+        ]
+      },
+      "workshop-rule": {
+        "role": "neutral",
+        "displayName": "Workshop Rule",
+        "canonical": "#d4d2c8",
+        "tonalRamp": [
+          "#0c0b07",
+          "#27251e",
+          "#44423a",
+          "#636158",
+          "#848279",
+          "#a7a59c",
+          "#cac9c2",
+          "#efeeec"
+        ]
+      },
+      "workshop-rule-strong": {
+        "role": "neutral",
+        "displayName": "Workshop Strong Rule",
+        "canonical": "#b8b6ac",
+        "tonalRamp": [
+          "#0c0b07",
+          "#27251e",
+          "#44423a",
+          "#636158",
+          "#848279",
+          "#a7a59b",
+          "#cac9c2",
+          "#efeeec"
+        ]
+      },
+      "workshop-ink": {
+        "role": "neutral",
+        "displayName": "Workshop Ink",
+        "canonical": "#1a1a18",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#424240",
+          "#61615f",
+          "#82827f",
+          "#a5a5a2",
+          "#c9c9c7",
+          "#eeeeee"
+        ]
+      },
+      "workshop-ash": {
+        "role": "neutral",
+        "displayName": "Workshop Ash",
+        "canonical": "#5a5a54",
+        "tonalRamp": [
+          "#0b0b09",
+          "#252520",
+          "#42423d",
+          "#61615b",
+          "#82827c",
+          "#a5a59f",
+          "#c9c9c4",
+          "#eeeeed"
+        ]
+      },
+      "workshop-muted": {
+        "role": "neutral",
+        "displayName": "Workshop Muted Ash",
+        "canonical": "#6f6f68",
+        "tonalRamp": [
+          "#0b0b08",
+          "#252520",
+          "#42423c",
+          "#61615b",
+          "#82827b",
+          "#a5a59e",
+          "#c9c9c4",
+          "#eeeeed"
+        ]
+      },
+      "workshop-header-muted": {
+        "role": "neutral",
+        "displayName": "Workshop Header Muted",
+        "canonical": "#9ca3af",
+        "tonalRamp": [
+          "#080b10",
+          "#20252e",
+          "#3c424c",
+          "#5b616c",
+          "#7c828e",
+          "#9ea5b1",
+          "#c4c9d1",
+          "#edeef1"
+        ]
+      },
+      "workshop-red": {
+        "role": "secondary",
+        "displayName": "Workshop Red",
+        "canonical": "#dc2626",
+        "tonalRamp": [
+          "#200000",
+          "#4d0002",
+          "#800008",
+          "#b60a14",
+          "#e73330",
+          "#ff7266",
+          "#feb2a9",
+          "#ffe9e6"
+        ]
+      },
+      "workshop-red-text": {
+        "role": "secondary",
+        "displayName": "Workshop Red Text",
+        "canonical": "#b91c1c",
+        "tonalRamp": [
+          "#200000",
+          "#4d0002",
+          "#800007",
+          "#b41417",
+          "#dd443c",
+          "#ff7366",
+          "#feb2a8",
+          "#ffe9e6"
+        ]
+      },
+      "workshop-amber-bg": {
+        "role": "secondary",
+        "displayName": "Workshop Amber Tint",
+        "canonical": "#fffbeb",
+        "tonalRamp": [
+          "#0d0b06",
+          "#28251a",
+          "#454235",
+          "#656154",
+          "#868274",
+          "#a8a596",
+          "#cbc9be",
+          "#efeeeb"
+        ]
+      },
+      "workshop-amber-text": {
+        "role": "secondary",
+        "displayName": "Workshop Amber Text",
+        "canonical": "#b45309",
+        "tonalRamp": [
+          "#1b0400",
+          "#3f1800",
+          "#6b2d01",
+          "#9a4400",
+          "#c56223",
+          "#ea874e",
+          "#fdb691",
+          "#ffeadf"
+        ]
+      },
+      "workshop-blue": {
+        "role": "secondary",
+        "displayName": "Workshop Blue",
+        "canonical": "#2563eb",
+        "tonalRamp": [
+          "#000038",
+          "#001867",
+          "#0031a4",
+          "#1451d8",
+          "#3978fc",
+          "#73a2ff",
+          "#adc9fe",
+          "#e6efff"
+        ]
+      },
+      "workshop-blue-bg": {
+        "role": "secondary",
+        "displayName": "Workshop Blue Tint",
+        "canonical": "#eff6ff",
+        "tonalRamp": [
+          "#090b0f",
+          "#21252b",
+          "#3d4249",
+          "#5c6269",
+          "#7c838b",
+          "#9fa5ad",
+          "#c4c9cf",
+          "#edeff1"
+        ]
+      },
+      "workshop-blue-text": {
+        "role": "secondary",
+        "displayName": "Workshop Blue Text",
+        "canonical": "#1d4ed8",
+        "tonalRamp": [
+          "#000037",
+          "#01027a",
+          "#0326b2",
+          "#1e4fd9",
+          "#3f76fe",
+          "#78a2fd",
+          "#aec9fe",
+          "#e7efff"
+        ]
+      },
+      "workshop-toast-green": {
+        "role": "secondary",
+        "displayName": "Workshop Toast Green",
+        "canonical": "#15803d",
+        "tonalRamp": [
+          "#001002",
+          "#002e10",
+          "#005021",
+          "#067535",
+          "#369854",
+          "#60bc77",
+          "#9edaaa",
+          "#e0f5e4"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "header-title": {
+        "displayName": "Header title",
+        "purpose": "The hub's name in the header bar and over the sign-in form. Uppercase with 0.1em tracking in the dark theme; as written with 0.02em in Workshop's header."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "An app's name on its tile, a page heading, the heading of a no-access card or an error (Friz Quadrata)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "A section heading on a page and a dialog's title (Friz Quadrata)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Everything read as a sentence: dialog text, log entries, menu items. An error block stops at 62ch."
+      },
+      "body-strong": {
+        "displayName": "Body strong",
+        "purpose": "A line's title, a person's name, button labels, tabs and toasts."
+      },
+      "field": {
+        "displayName": "Field",
+        "purpose": "Text in fields on phones and touch screens, and in every field the core draws."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Roles, sub-lines, chips, hints, error lines and addresses."
+      },
+      "meta-strong": {
+        "displayName": "Meta strong",
+        "purpose": "The label of a small button."
+      },
+      "meta-figures": {
+        "displayName": "Meta figures",
+        "purpose": "Dates and ages, in tabular figures."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase, in Muted Ash: a field's caption, a column head, the label over a tile's lines. It names what is directly under it and never sits over a heading."
+      },
+      "count": {
+        "displayName": "Count",
+        "purpose": "The number in a count bubble; tabular figures, no tracking."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "A password or key shown once."
+      }
+    },
+    "shadows": [
+      {
+        "name": "floating-panel",
+        "value": "0 12px 40px rgba(0, 0, 0, .5)",
+        "purpose": "Only on layers that float and can be dismissed: dialogs, menus, toasts, the app switcher. Workshop theme: 0 12px 40px rgba(0, 0, 0, .18)."
+      },
+      {
+        "name": "scrim",
+        "value": "rgba(0, 0, 0, .55)",
+        "purpose": "Behind a dialog, and behind the switcher when it is a sheet on a phone. Workshop theme: rgba(26, 26, 24, .35)."
+      },
+      {
+        "name": "pinned-column-rule",
+        "value": "inset -1px 0 0 var(--border, #454542)",
+        "purpose": "Not a shadow: the 1px Rule Grey line on the inner edge of the pinned person column, drawn as an inset."
+      },
+      {
+        "name": "workshop-count-edge",
+        "value": "inset 0 0 0 1px currentColor",
+        "purpose": "Not a shadow: the 1px edge the hub's stylesheet gives the count bubble in Workshop, in the count's own colour. Open question with the owner; not a pattern for new components."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.23, 1, .32, 1)",
+        "purpose": "The family ease-out. Everything that moves uses it."
+      },
+      {
+        "name": "dur-fast",
+        "value": "120ms",
+        "purpose": "A button changing colour; a menu rising 6px and fading in."
+      },
+      {
+        "name": "dur",
+        "value": "200ms",
+        "purpose": "A dialog rising 6px and fading in; a toast rising 8px and fading in; the sheet's scrim fading in."
+      },
+      {
+        "name": "switcher-pop",
+        "value": "150ms",
+        "purpose": "The core only: the app switcher growing from 96% and fading in from under its button. A plain number in the core, not a family token."
+      },
+      {
+        "name": "sheet",
+        "value": "260ms",
+        "purpose": "The core only: the switcher sliding up as a sheet on a phone. The same value as the family's panel duration, written as a plain number in the core."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0ms",
+        "purpose": "With reduced motion asked for, the family's durations collapse to 0 and the hub's and the core's animations are switched off."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "700px",
+        "purpose": "Below: one column of tiles, the tabs on a row of their own, 16px page padding, the pinned person column at 184px, the switcher as a sheet from the bottom."
+      },
+      {
+        "name": "desk",
+        "value": "1100px",
+        "purpose": "At or above: only the page padding grows (28px above, 48px at the sides, 32px below). Every screen is also checked at about 900px, half a screen."
+      },
+      {
+        "name": "touch",
+        "value": "(max-width: 699px), (pointer: coarse)",
+        "purpose": "A phone by its width or an iPad by its pointer: every control takes its 44px size and fields take 16px text."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled button in a view or dialog (Add person, Sign in). Upsdell Red in the dark theme, Ink in Workshop.",
+      "html": "<button class=\"ds-pri\" type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 5v14M5 12h14\"/></svg>Add person</button>",
+      "css": ".ds-pri{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border:1px solid var(--border2,#5e5e5a);border-radius:var(--radius,8px);background:transparent;color:var(--text2,#d2d2ce);font:600 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif);white-space:nowrap;cursor:pointer;transition:background-color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),border-color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1));background:var(--accent,#af1f24);border-color:var(--accent,#af1f24);color:var(--accent-text,#fff)}.ds-pri:hover{filter:brightness(1.12)}.ds-pri:active{filter:brightness(.94)}.ds-pri:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}@media (max-width:699px),(pointer:coarse){.ds-pri{height:44px}}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The default button: outlined and quiet. Shown with its small size (inside a row, a callout or a tile) and its disabled state, whose edge is dashed.",
+      "html": "<div class=\"ds-sec-row\"><button class=\"ds-sec\" type=\"button\">Cancel</button><button class=\"ds-sec ds-sec-small\" type=\"button\">Try again</button><button class=\"ds-sec\" type=\"button\" disabled>Reload</button></div>",
+      "css": ".ds-sec-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.ds-sec{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border:1px solid var(--border2,#5e5e5a);border-radius:var(--radius,8px);background:transparent;color:var(--text2,#d2d2ce);font:600 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif);white-space:nowrap;cursor:pointer;transition:background-color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),border-color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1))}.ds-sec:hover{background:var(--bg,#1c1c1b);color:var(--text,#fff)}.ds-sec:active{background:var(--bg2,#333331)}.ds-sec:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}.ds-sec-small{height:28px;padding:0 10px;font-size:13px}.ds-sec:disabled{color:var(--text3,#b0b0ab);background:transparent;border-color:var(--border,#454542);border-style:dashed;cursor:default}@media (max-width:699px),(pointer:coarse){.ds-sec,.ds-sec-small{height:44px}}"
+    },
+    {
+      "name": "Danger and Amber Buttons",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "The secondary button with a coloured outline and label, never a fill. Danger is the destructive choice in a confirm; amber is the small Link button in a cell where a link wants doing.",
+      "html": "<div class=\"ds-warn-row\"><button class=\"ds-warn ds-warn-danger\" type=\"button\">Remove</button><button class=\"ds-warn ds-warn-amber\" type=\"button\">Link</button></div>",
+      "css": ".ds-warn-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.ds-warn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border:1px solid var(--border2,#5e5e5a);border-radius:var(--radius,8px);background:transparent;color:var(--text2,#d2d2ce);font:600 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif);white-space:nowrap;cursor:pointer;transition:background-color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),border-color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1))}.ds-warn:hover{background:var(--bg,#1c1c1b)}.ds-warn:active{background:var(--bg2,#333331)}.ds-warn:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}.ds-warn-danger{border-color:var(--red,#ea372e);color:var(--red-text,#ff7369)}.ds-warn-amber{height:28px;padding:0 10px;font-size:13px;border-color:var(--amber,#d97706);color:var(--amber-text,#f2b84b)}@media (max-width:699px),(pointer:coarse){.ds-warn,.ds-warn-amber{height:44px}}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A field under its uppercase label, with the Show button a password field carries and the error line that keeps its room. Focus is the family ring; the edge does not change. The real field is a password input; this preview uses a plain text input so a password manager leaves it alone.",
+      "html": "<div class=\"ds-fld\"><label class=\"ds-fld-label\" for=\"ds-fld-pass\">Its current password</label><div class=\"ds-fld-wrap\"><input class=\"ds-fld-input\" id=\"ds-fld-pass\" type=\"text\" autocomplete=\"off\" spellcheck=\"false\"><button class=\"ds-fld-reveal\" type=\"button\">Show</button></div><div class=\"ds-fld-err\" role=\"alert\">That is not its password.</div></div>",
+      "css": ".ds-fld{display:grid;gap:6px;max-width:400px;font:400 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif);color:var(--text,#fff)}.ds-fld-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3,#b0b0ab)}.ds-fld-wrap{position:relative}.ds-fld-input{width:100%;height:36px;padding:0 64px 0 12px;background:var(--bg,#1c1c1b);color:var(--text,#fff);border:1px solid var(--border,#454542);border-radius:var(--radius,8px);font:inherit;caret-color:var(--focus,#ea372e);box-sizing:border-box}.ds-fld-input[aria-invalid=\"true\"]{border-color:var(--red-text,#ff7369)}.ds-fld-input:disabled{color:var(--text3,#b0b0ab);border-style:dashed}.ds-fld-reveal{position:absolute;right:4px;top:4px;height:28px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--text3,#b0b0ab);font:inherit;font-size:13px;cursor:pointer}.ds-fld-reveal:hover{color:var(--text,#fff);background:var(--bg2,#333331)}.ds-fld-input:focus-visible,.ds-fld-reveal:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}.ds-fld-err{min-height:18px;color:var(--red-text,#ff7369);font-size:13px;overflow-wrap:anywhere}@media (max-width:699px),(pointer:coarse){.ds-fld-input{height:44px;font-size:16px}.ds-fld-reveal{top:0;right:0;height:100%;padding:0 14px}}"
+    },
+    {
+      "name": "Header and Tabs",
+      "kind": "nav",
+      "refersTo": "header",
+      "description": "The sticky bar: the hub's name in Friz Quadrata, a hub master's tabs, the person's name and the cog, on the 3px Burning Star Red rule. The Stella mark sits before the name and is left out of this preview. In Workshop the bar is Ink with no rule, and the current tab is underlined in its own label colour, because the family's tab colour there is the bar's own Ink.",
+      "html": "<header class=\"ds-hd\"><span class=\"ds-hd-title\">Stella hub</span><nav class=\"ds-hd-tabs\" aria-label=\"Main\"><a tabindex=\"0\" aria-current=\"page\">Home</a><a tabindex=\"0\">Accounts</a><a tabindex=\"0\">Account log</a></nav><span class=\"ds-hd-sp\"></span><span class=\"ds-hd-who\">Workshop floor</span><button class=\"ds-hd-ib\" type=\"button\" aria-label=\"Settings\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z\"/></svg></button></header>",
+      "css": ".ds-hd{display:flex;align-items:center;gap:16px;height:56px;padding:0 24px;background:var(--header-bg,#282827);color:var(--header-text,#fff);border-bottom:var(--header-line,3px solid #ea372e);font:400 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif);box-sizing:border-box}.ds-hd-title{font-family:var(--font-head,\"Friz Quadrata Pro\",\"Friz Quadrata BT\",\"Friz Quadrata\",Georgia,serif);font-weight:700;font-size:19px;line-height:1.25;letter-spacing:var(--title-spacing,.1em);text-transform:var(--title-transform,uppercase);white-space:nowrap}.ds-hd-tabs{display:flex;align-self:stretch;gap:4px;margin-left:8px;min-width:0;overflow-x:auto;scrollbar-width:none}.ds-hd-tabs a{display:flex;align-items:center;padding:3px 12px 0;cursor:pointer;color:var(--header-muted,#b0b0ab);font-weight:600;text-decoration:none;white-space:nowrap;border-bottom:3px solid transparent}.ds-hd-tabs a:hover{color:var(--header-text,#fff)}.ds-hd-tabs a[aria-current=\"page\"]{color:var(--header-text,#fff);border-bottom-color:var(--tab-active,#ea372e)}[data-theme=\"workshop\"] .ds-hd-tabs a[aria-current=\"page\"]{border-bottom-color:currentColor}.ds-hd-tabs a:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:-2px}.ds-hd-sp{flex:1}.ds-hd-who{color:var(--header-muted,#b0b0ab);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.ds-hd-ib{display:inline-grid;place-items:center;width:36px;height:36px;flex-shrink:0;padding:0;border:0;border-radius:var(--radius,8px);background:transparent;color:inherit;cursor:pointer}.ds-hd-ib:hover{background:var(--bg2,#333331)}.ds-hd-ib:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}@media (max-width:699px),(pointer:coarse){.ds-hd-ib{width:44px;height:44px}}@media (max-width:699px){.ds-hd{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:56px;column-gap:12px;height:auto;padding:0 12px 0 16px}.ds-hd-sp,.ds-hd-who{display:none}.ds-hd-title{overflow:hidden;text-overflow:ellipsis}.ds-hd-tabs{grid-column:1 / -1;grid-row:2;height:44px;margin:0 -12px}}"
+    },
+    {
+      "name": "Chips and Count",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "A chip names a fact about what it sits beside: filled, outlined (the quieter one), or amber for why a column cannot be read. \"Linked\" is a chip that is also the button for its menu. The count bubble sits beside a label; its colours are an open question with the owner.",
+      "html": "<div class=\"ds-chip-row\"><span class=\"ds-chip\">You</span><span class=\"ds-chip ds-chip-outline\">Own sign-in</span><span class=\"ds-chip ds-chip-amber\">Not reachable</span><button class=\"ds-chip ds-chip-outline ds-chip-btn\" type=\"button\" aria-haspopup=\"menu\" aria-expanded=\"false\">Linked<svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"5\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/></svg></button><span class=\"ds-chip-label\">Orders waiting <span class=\"ds-chip-count\" aria-label=\"3 waiting\">3</span></span></div>",
+      "css": ".ds-chip-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;font:400 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif)}.ds-chip{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:13px;white-space:nowrap;box-sizing:border-box;background:var(--bg2,#333331);color:var(--text2,#d2d2ce)}.ds-chip-amber{background:var(--amber-bg,#2b1f08);color:var(--amber-text,#f2b84b)}.ds-chip-outline{background:transparent;border:1px solid var(--border2,#5e5e5a);color:var(--text3,#b0b0ab)}.ds-chip-btn{position:relative;gap:4px;padding-right:6px;font:inherit;font-size:13px;cursor:pointer}.ds-chip-btn:hover,.ds-chip-btn[aria-expanded=\"true\"]{color:var(--text,#fff);border-color:var(--text3,#b0b0ab)}.ds-chip-btn:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}@media (max-width:699px),(pointer:coarse){.ds-chip-btn::after{content:\"\";position:absolute;inset:-11px -4px}}.ds-chip-label{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3,#b0b0ab)}.ds-chip-count{display:inline-block;min-width:18px;padding:1px 6px;border-radius:999px;background:var(--count-bg,#ea372e);color:var(--count-text,#fff);font-size:11px;font-weight:700;letter-spacing:0;line-height:1.45;text-align:center;font-variant-numeric:tabular-nums;box-sizing:border-box}:host-context([data-theme=\"workshop\"]) .ds-chip-count{box-shadow:inset 0 0 0 1px currentColor}"
+    },
+    {
+      "name": "App Tiles",
+      "kind": "card",
+      "refersTo": "tile",
+      "description": "The signature: one tile per app with its overview on its face. A link under the whole tile opens the app, and each line above it is a door to one thing. The second tile is still waiting for its card: flat blocks the size of the lines, inside the 206px the tile already holds, so nothing moves when the card arrives.",
+      "html": "<div class=\"ds-tiles\"><article class=\"ds-tile\"><a class=\"ds-tile-go\" tabindex=\"0\" aria-label=\"Open Material ordering\"></a><div class=\"ds-tile-head\"><svg class=\"ds-tile-ico\" viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3.5 8 12 3.5 20.5 8v8L12 20.5 3.5 16z\"/><path d=\"M3.5 8 12 12.5 20.5 8M12 12.5v8\"/></svg><div class=\"ds-tile-id\"><h3 class=\"ds-tile-name\">Material ordering</h3><span class=\"ds-tile-role\">Manager</span></div><svg class=\"ds-tile-chev\" viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"m9 6 6 6-6 6\"/></svg></div><div class=\"ds-tile-face\"><div class=\"ds-tile-label\">Orders waiting <span class=\"ds-tile-count\" aria-label=\"3 waiting\">3</span></div><ul class=\"ds-tile-lines\"><li><a class=\"ds-tile-line\" tabindex=\"0\"><span class=\"ds-tile-lt\">Welding wire, 3 spools</span><span class=\"ds-tile-ls\">Fabrication bay</span><span class=\"ds-tile-lw ds-tile-late\">Yesterday<span class=\"ds-tile-sr\">, late</span></span></a></li><li><a class=\"ds-tile-line\" tabindex=\"0\"><span class=\"ds-tile-lt\">M12 bolts, 1 box</span><span class=\"ds-tile-ls\">Assembly</span><span class=\"ds-tile-lw\">2 h ago</span></a></li><li><a class=\"ds-tile-line\" tabindex=\"0\"><span class=\"ds-tile-lt\">6 mm plate, 2 sheets</span><span class=\"ds-tile-ls\">Fabrication bay</span><span class=\"ds-tile-lw\">40 min ago</span></a></li></ul></div><div class=\"ds-tile-foot\"><a tabindex=\"0\">Consumables</a><a tabindex=\"0\">Deliveries</a></div></article><article class=\"ds-tile\"><a class=\"ds-tile-go\" tabindex=\"0\" aria-label=\"Open Workshop drawings\"></a><div class=\"ds-tile-head\"><svg class=\"ds-tile-ico\" viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h4\"/></svg><div class=\"ds-tile-id\"><h3 class=\"ds-tile-name\">Workshop drawings</h3></div><svg class=\"ds-tile-chev\" viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"m9 6 6 6-6 6\"/></svg></div><div class=\"ds-tile-face\" aria-busy=\"true\"><div class=\"ds-tile-label\"><span class=\"ds-tile-sr\">Loading Workshop drawings</span></div><div class=\"ds-tile-skel\"></div><div class=\"ds-tile-skel\"></div><div class=\"ds-tile-skel\"></div></div></article></div>",
+      "css": ".ds-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;font:400 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif);color:var(--text,#fff)}.ds-tile{position:relative;display:flex;flex-direction:column;min-width:0;padding:16px 20px 12px;background:var(--surface,#282827);border:1px solid var(--border,#454542);border-radius:var(--radius-lg,11px)}.ds-tile-go{position:absolute;inset:0;z-index:0;border-radius:inherit;cursor:pointer}.ds-tile-go:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:-2px}.ds-tile>:not(.ds-tile-go){position:relative;z-index:1;pointer-events:none}.ds-tile a:not(.ds-tile-go),.ds-tile button{pointer-events:auto}@media (hover:hover){.ds-tile:has(.ds-tile-go:hover){border-color:var(--border2,#5e5e5a)}}.ds-tile-head{display:flex;align-items:center;gap:12px;min-height:36px}.ds-tile-ico{color:var(--text2,#d2d2ce);flex-shrink:0}.ds-tile-id{display:flex;align-items:center;flex-wrap:wrap;gap:2px 12px;flex:1;min-width:0}.ds-tile-name{margin:0;font-family:var(--font-head,\"Friz Quadrata Pro\",\"Friz Quadrata BT\",\"Friz Quadrata\",Georgia,serif);font-weight:700;font-size:19px;line-height:1.25;min-width:0;overflow-wrap:anywhere}.ds-tile-role{color:var(--text3,#b0b0ab);font-size:13px;white-space:nowrap}.ds-tile-chev{color:var(--text3,#b0b0ab);flex-shrink:0}.ds-tile-face{min-height:206px}.ds-tile-label{display:flex;align-items:center;gap:8px;min-height:20px;margin:14px 0 2px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3,#b0b0ab)}.ds-tile-count{display:inline-block;min-width:18px;padding:1px 6px;border-radius:999px;background:var(--count-bg,#ea372e);color:var(--count-text,#fff);font-size:11px;font-weight:700;letter-spacing:0;line-height:1.45;text-align:center;font-variant-numeric:tabular-nums;box-sizing:border-box}:host-context([data-theme=\"workshop\"]) .ds-tile-count{box-shadow:inset 0 0 0 1px currentColor}.ds-tile-lines{list-style:none;margin:0;padding:0}.ds-tile-lines li+li{border-top:1px solid var(--bg2,#333331)}.ds-tile-line{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:16px;align-items:center;min-height:56px;margin:0 -8px;padding:6px 8px;border-radius:var(--radius,8px);color:inherit;text-decoration:none;cursor:pointer;box-sizing:border-box}.ds-tile-line:hover{background:var(--bg,#1c1c1b)}.ds-tile-lt{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-tile-ls{grid-column:1;color:var(--text3,#b0b0ab);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-tile-lw{grid-column:2;grid-row:1 / span 2;color:var(--text2,#d2d2ce);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}.ds-tile-late{color:var(--amber-text,#f2b84b)}.ds-tile-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.ds-tile-foot{display:flex;flex-wrap:wrap;gap:0 16px;margin-top:auto;padding-top:8px;border-top:1px solid var(--border,#454542);font-size:13px}.ds-tile-foot a{padding:6px 0;color:var(--text2,#d2d2ce);cursor:pointer;text-decoration:underline;text-decoration-color:var(--border2,#5e5e5a);text-underline-offset:3px}.ds-tile-foot a:hover{color:var(--text,#fff);text-decoration-color:currentColor}.ds-tile-line:focus-visible,.ds-tile-foot a:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}.ds-tile-skel{position:relative;height:56px}.ds-tile-skel+.ds-tile-skel{margin-top:1px}.ds-tile-skel::before{content:\"\";position:absolute;inset:6px 0;border-radius:var(--radius,8px);background:var(--bg,#1c1c1b);border:1px solid var(--bg2,#333331)}@media (max-width:699px){.ds-tiles{grid-template-columns:minmax(0,1fr);gap:12px}.ds-tile{padding:12px 16px}}@media (max-width:699px),(pointer:coarse){.ds-tile-foot a{padding:13px 0}}"
+    },
+    {
+      "name": "Accounts Grid",
+      "kind": "custom",
+      "refersTo": "accounts-grid",
+      "description": "People down, apps across. The person column stays put while the apps scroll beneath it, with a 1px inset rule on its inner edge and the person's own menu inside it. A cell holds a role select and one control for the link: three dots beside a role, the Linked chip where there is none, or an amber Link where a link wants doing. While more columns lie to the right the trailing 40px fades to Band.",
+      "html": "<div class=\"ds-acct-shell\"><div class=\"ds-acct-wrap\"><table class=\"ds-acct\"><thead><tr><th class=\"ds-acct-who\" scope=\"col\">Person</th><th scope=\"col\">Board</th><th scope=\"col\">Ordering</th><th scope=\"col\"><div class=\"ds-acct-notes\"><span class=\"ds-acct-chip\">Not joined</span></div>Ordering test</th><th scope=\"col\">Drawings</th></tr></thead><tbody><tr><td class=\"ds-acct-who\"><div class=\"ds-acct-person\"><div class=\"ds-acct-id\"><div class=\"ds-acct-name\">Workshop floor</div><div class=\"ds-acct-mail\">workshop@example.test</div></div><button class=\"ds-acct-ib\" type=\"button\" aria-label=\"More for workshop@example.test\" aria-haspopup=\"menu\" aria-expanded=\"false\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"5\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/></svg></button></div></td><td><div class=\"ds-acct-cell\"><select class=\"ds-acct-sel\" aria-label=\"Workshop floor in Board\"><option>None</option><option selected>Floor</option><option>Manager</option></select><button class=\"ds-acct-ib\" type=\"button\" aria-label=\"Workshop floor's link to Board\" aria-haspopup=\"menu\" aria-expanded=\"false\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"5\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/></svg></button></div></td><td><div class=\"ds-acct-cell\"><select class=\"ds-acct-sel\" aria-label=\"Workshop floor in Ordering\"><option>None</option><option selected>Floor</option></select><button class=\"ds-acct-link\" type=\"button\" aria-label=\"Not linked. Link Workshop floor to Ordering\">Link</button></div></td><td><div class=\"ds-acct-cell\"><label class=\"ds-acct-check\"><input type=\"checkbox\" aria-label=\"Show Ordering test to Workshop floor\">Tile</label></div></td><td><div class=\"ds-acct-cell\"><button class=\"ds-acct-chipbtn\" type=\"button\" aria-label=\"Linked. Workshop floor's link to Drawings\" aria-haspopup=\"menu\" aria-expanded=\"false\">Linked<svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"5\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"1.4\" fill=\"currentColor\"/></svg></button></div></td></tr></tbody></table></div></div>",
+      "css": ".ds-acct-shell{position:relative;font:400 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif);color:var(--text,#fff)}.ds-acct-shell.ds-acct-more::after{content:\"\";position:absolute;top:1px;right:1px;bottom:1px;width:40px;pointer-events:none;border-radius:0 var(--radius-lg,11px) var(--radius-lg,11px) 0;background:linear-gradient(to right,transparent,var(--bg,#1c1c1b))}.ds-acct-wrap{position:relative;overflow-x:auto;background:var(--surface,#282827);border:1px solid var(--border,#454542);border-radius:var(--radius-lg,11px)}.ds-acct{width:100%;border-collapse:collapse}.ds-acct th{padding:12px 12px 8px;text-align:left;vertical-align:bottom;white-space:nowrap;border-bottom:1px solid var(--border2,#5e5e5a);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3,#b0b0ab)}.ds-acct td{padding:6px 12px;vertical-align:middle;border-bottom:1px solid var(--bg2,#333331)}.ds-acct tr:last-child td{border-bottom:0}.ds-acct .ds-acct-who{position:sticky;left:0;z-index:1;min-width:232px;max-width:300px;background:var(--surface,#282827);box-shadow:inset -1px 0 0 var(--border,#454542)}.ds-acct-notes{display:flex;gap:4px;margin-bottom:6px}.ds-acct-chip{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:13px;white-space:nowrap;box-sizing:border-box;border:1px solid var(--border2,#5e5e5a);color:var(--text3,#b0b0ab);font-weight:400;letter-spacing:0;text-transform:none}.ds-acct-person{display:flex;align-items:center;gap:6px}.ds-acct-id{flex:1;min-width:0}.ds-acct-name{font-weight:600}.ds-acct-mail{color:var(--text3,#b0b0ab);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-acct-cell{display:flex;align-items:center;gap:6px;min-height:40px}.ds-acct-sel{width:120px;height:36px;padding:0 8px;background:var(--bg,#1c1c1b);color:var(--text,#fff);border:1px solid var(--border,#454542);border-radius:var(--radius,8px);font:inherit;box-sizing:border-box}.ds-acct-ib{display:inline-grid;place-items:center;width:28px;height:28px;flex-shrink:0;padding:0;border:0;border-radius:var(--radius,8px);background:transparent;color:var(--text3,#b0b0ab);cursor:pointer}.ds-acct-ib:hover{background:var(--bg2,#333331);color:var(--text,#fff)}.ds-acct-link{height:28px;padding:0 10px;border:1px solid var(--amber,#d97706);border-radius:var(--radius,8px);background:transparent;color:var(--amber-text,#f2b84b);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background-color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(.23,1,.32,1))}.ds-acct-link:hover{background:var(--bg,#1c1c1b)}.ds-acct-check{display:inline-flex;align-items:center;gap:8px;min-height:36px;color:var(--text2,#d2d2ce)}.ds-acct-check input{width:18px;height:18px;margin:0;accent-color:var(--text2,#d2d2ce)}.ds-acct-chipbtn{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:13px;white-space:nowrap;box-sizing:border-box;position:relative;gap:4px;padding-right:6px;border:1px solid var(--border2,#5e5e5a);background:transparent;color:var(--text3,#b0b0ab);font:inherit;font-size:13px;cursor:pointer}.ds-acct-chipbtn:hover,.ds-acct-chipbtn[aria-expanded=\"true\"]{color:var(--text,#fff);border-color:var(--text3,#b0b0ab)}.ds-acct-sel:focus-visible,.ds-acct-ib:focus-visible,.ds-acct-link:focus-visible,.ds-acct-chipbtn:focus-visible,.ds-acct-check input:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}@media (max-width:699px),(pointer:coarse){.ds-acct-sel,.ds-acct-ib,.ds-acct-link{height:44px}.ds-acct-ib{width:44px}.ds-acct-sel{font-size:16px}.ds-acct-cell{min-height:52px}.ds-acct-check{min-height:44px}.ds-acct-chipbtn::after{content:\"\";position:absolute;inset:-11px -4px}}@media (max-width:699px){.ds-acct .ds-acct-who{min-width:184px;max-width:184px}.ds-acct-mail{white-space:normal;overflow-wrap:anywhere}}"
+    },
+    {
+      "name": "Menu",
+      "kind": "custom",
+      "refersTo": "menu",
+      "description": "A floating panel under the button that opened it. The heading is plain, not capitals, because it is usually an address. Hover and focus are the same Band fill; a destructive item is Link Coral. One of the few things that casts a shadow.",
+      "html": "<div class=\"ds-menu\" role=\"menu\" aria-label=\"More for workshop@example.test\"><div class=\"ds-menu-head\">workshop@example.test</div><button class=\"ds-menu-item\" type=\"button\" role=\"menuitem\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 20h4L19 9l-4-4L4 16z\"/><path d=\"m13 7 4 4\"/></svg><span class=\"ds-menu-label\">Name</span></button><button class=\"ds-menu-item\" type=\"button\" role=\"menuitem\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"8\" cy=\"15\" r=\"4\"/><path d=\"m11 12 9-9M16 7l3 3M14 9l2 2\"/></svg><span class=\"ds-menu-label\">New keys everywhere</span></button><button class=\"ds-menu-item\" type=\"button\" role=\"menuitem\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3 12a9 9 0 1 0 3-6.7L3 8\"/><path d=\"M3 3v5h5\"/></svg><span class=\"ds-menu-label\">Make login again</span></button><div class=\"ds-menu-sep\" role=\"separator\"></div><button class=\"ds-menu-item ds-menu-danger\" type=\"button\" role=\"menuitem\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13\"/></svg><span class=\"ds-menu-label\">Remove</span></button></div>",
+      "css": ".ds-menu{display:inline-block;min-width:200px;max-width:320px;padding:4px;background:var(--panel-bg,#282827);border:1px solid var(--border,#454542);border-radius:var(--radius-lg,11px);box-shadow:var(--shadow-panel,0 12px 40px rgba(0,0,0,.5));font:400 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif);box-sizing:border-box}.ds-menu-head{padding:8px 10px 4px;font-size:13px;color:var(--text3,#b0b0ab);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-menu-item{display:flex;align-items:center;gap:8px;width:100%;min-height:36px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--text2,#d2d2ce);font:inherit;text-align:left;cursor:pointer;box-sizing:border-box}.ds-menu-item:hover,.ds-menu-item:focus-visible{background:var(--bg,#1c1c1b);color:var(--text,#fff);outline:none}.ds-menu-item.ds-menu-danger{color:var(--red-text,#ff7369)}.ds-menu-item:disabled{color:var(--text3,#b0b0ab);cursor:default;background:transparent}.ds-menu-label{flex:1}.ds-menu-sep{height:1px;margin:4px 0;background:var(--border,#454542)}@media (max-width:699px),(pointer:coarse){.ds-menu-item{min-height:44px}}"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "A short message at the bottom centre of the page: Toast Green when something worked, Upsdell Red when it did not. The label is white in both themes. It rises 8px and fades in over 200ms.",
+      "html": "<div class=\"ds-toast-row\"><div class=\"ds-toast\" role=\"status\">workshop@example.test is linked to Material ordering.</div><div class=\"ds-toast ds-toast-warn\" role=\"status\">No connection. Check the network and try again.</div></div>",
+      "css": ".ds-toast-row{display:grid;gap:12px;justify-items:start;font:400 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif)}.ds-toast{max-width:560px;padding:10px 14px;border-radius:var(--radius,8px);background:var(--toast-bg,#1f7a3a);color:#fff;font-weight:600;box-shadow:var(--shadow-panel,0 12px 40px rgba(0,0,0,.5))}.ds-toast-warn{background:var(--toast-warn-bg,#af1f24)}"
+    },
+    {
+      "name": "Sign-in Column",
+      "kind": "custom",
+      "refersTo": "signin-column",
+      "description": "The core's sign-in screen, drawn inside every app: one centred column on the ground colour. The Stella mark sits above the name and is left out of this preview. In the core these values come from its own short-named copy of the family tokens, and its fields are 16px at every width. The real screen is an ordinary form with a username and a current-password field; this preview uses plain text inputs.",
+      "html": "<div class=\"ds-si\"><div class=\"ds-si-col\"><h3 class=\"ds-si-place\">Stella hub</h3><div class=\"ds-si-form\"><div class=\"ds-si-field\"><label class=\"ds-si-label\" for=\"ds-si-email\">Email</label><input class=\"ds-si-input\" id=\"ds-si-email\" type=\"text\" autocomplete=\"off\" spellcheck=\"false\"></div><div class=\"ds-si-field\"><label class=\"ds-si-label\" for=\"ds-si-pass\">Password</label><div class=\"ds-si-wrap\"><input class=\"ds-si-input\" id=\"ds-si-pass\" type=\"text\" autocomplete=\"off\" spellcheck=\"false\"><button class=\"ds-si-reveal\" type=\"button\">Show</button></div></div><p class=\"ds-si-err\" role=\"alert\"></p><button class=\"ds-si-btn\" type=\"button\">Sign in</button><button class=\"ds-si-link\" type=\"button\">Email me a reset link</button></div></div></div>",
+      "css": ".ds-si{display:grid;place-items:center;padding:24px 16px;background:var(--ground,#0e0a0a);color:var(--text,#fff);font:400 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif)}.ds-si-col{width:100%;max-width:352px;display:grid;gap:16px}.ds-si-place{margin:0;font-family:var(--font-head,\"Friz Quadrata Pro\",\"Friz Quadrata BT\",\"Friz Quadrata\",Georgia,serif);font-weight:700;font-size:19px;line-height:1.25;letter-spacing:var(--title-spacing,.1em);text-transform:var(--title-transform,uppercase);text-align:center;text-wrap:balance}.ds-si-form{display:grid;gap:12px}.ds-si-field{display:grid;gap:6px}.ds-si-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3,#b0b0ab)}.ds-si-input{display:block;width:100%;height:36px;padding:0 12px;background:var(--bg,#1c1c1b);color:var(--text,#fff);border:1px solid var(--border,#454542);border-radius:var(--radius,8px);font:inherit;font-size:16px;caret-color:var(--focus,#ea372e);box-sizing:border-box}.ds-si-input[aria-invalid=\"true\"]{border-color:var(--red-text,#ff7369)}.ds-si-wrap{position:relative}.ds-si-wrap .ds-si-input{padding-right:64px}.ds-si-reveal{position:absolute;right:4px;top:4px;height:28px;padding:0 10px;border:0;border-radius:calc(var(--radius,8px) - 2px);background:transparent;color:var(--text3,#b0b0ab);font:inherit;font-size:13px;cursor:pointer}.ds-si-reveal:hover{color:var(--text,#fff);background:var(--bg2,#333331)}.ds-si-err{margin:0;min-height:18px;color:var(--red-text,#ff7369);font-size:13px;overflow-wrap:anywhere}.ds-si-btn{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 14px;border:1px solid var(--accent,#af1f24);border-radius:var(--radius,8px);background:var(--accent,#af1f24);color:var(--accent-text,#fff);font:inherit;font-weight:600;white-space:nowrap;cursor:pointer;transition:background-color 120ms var(--ease-out,cubic-bezier(.23,1,.32,1)),border-color 120ms var(--ease-out,cubic-bezier(.23,1,.32,1))}.ds-si-btn:hover{filter:brightness(1.12)}.ds-si-link{justify-self:center;padding:6px 8px;border:0;border-radius:var(--radius,8px);background:transparent;color:var(--text3,#b0b0ab);font:inherit;font-size:13px;cursor:pointer}.ds-si-link:hover{color:var(--text,#fff)}.ds-si-input:focus-visible,.ds-si-reveal:focus-visible,.ds-si-btn:focus-visible,.ds-si-link:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}@media (max-width:699px),(pointer:coarse){.ds-si-input,.ds-si-btn{height:44px}.ds-si-reveal{top:0;right:0;height:44px;padding:0 14px}.ds-si-link{display:inline-flex;align-items:center;min-height:44px;padding:0 12px}}@media (prefers-reduced-motion:reduce){.ds-si-btn{transition:none}}"
+    },
+    {
+      "name": "App Switcher",
+      "kind": "custom",
+      "refersTo": "switcher-popover",
+      "description": "The core's switcher, the same in every app: a nine-dot button in the host app's header and, under it, a panel of this login's apps, three to a row, with the app you are in filled Chip Grey. Under 700px it is a sheet from the bottom of the screen on the scrim. The button's focus ring takes the host page's own focus colour, falling back to Burning Star Red.",
+      "html": "<div class=\"ds-sw\"><button class=\"ds-sw-btn\" type=\"button\" aria-label=\"Apps\" aria-haspopup=\"dialog\" aria-expanded=\"true\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"5\" cy=\"5\" r=\"1.9\"/><circle cx=\"12\" cy=\"5\" r=\"1.9\"/><circle cx=\"19\" cy=\"5\" r=\"1.9\"/><circle cx=\"5\" cy=\"12\" r=\"1.9\"/><circle cx=\"12\" cy=\"12\" r=\"1.9\"/><circle cx=\"19\" cy=\"12\" r=\"1.9\"/><circle cx=\"5\" cy=\"19\" r=\"1.9\"/><circle cx=\"12\" cy=\"19\" r=\"1.9\"/><circle cx=\"19\" cy=\"19\" r=\"1.9\"/></svg></button><div class=\"ds-sw-pop\" role=\"dialog\" aria-label=\"Apps\"><nav class=\"ds-sw-grid\" aria-label=\"Your apps\"><a class=\"ds-sw-app\" tabindex=\"0\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><rect x=\"3.5\" y=\"4.5\" width=\"17\" height=\"15\" rx=\"2\"/><path d=\"M3.5 9.5h17M9 9.5v10M14.5 9.5v10\"/></svg><span>Board</span></a><a class=\"ds-sw-app\" tabindex=\"0\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3.5 8 12 3.5 20.5 8v8L12 20.5 3.5 16z\"/><path d=\"M3.5 8 12 12.5 20.5 8M12 12.5v8\"/></svg><span>Ordering</span></a><a class=\"ds-sw-app\" tabindex=\"0\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 20h4L19 9l-4-4L4 16z\"/><path d=\"m13 7 4 4\"/></svg><span>Design</span></a><a class=\"ds-sw-app\" tabindex=\"0\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h4\"/></svg><span>Drawings</span></a></nav><div class=\"ds-sw-foot\"><div class=\"ds-sw-who\"><b>Workshop floor</b><span>workshop@example.test</span></div><a class=\"ds-sw-home\" tabindex=\"0\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z\"/></svg>Stella hub</a></div></div></div>",
+      "css": ".ds-sw{display:grid;justify-items:end;gap:6px;width:324px;max-width:100%;color:var(--text,#fff);font:400 14.5px/1.4 var(--font,\"Sweet Sans Pro\",\"Sweet Sans\",system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif)}.ds-sw-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:0;border-radius:8px;background:transparent;color:inherit;cursor:pointer}.ds-sw-btn:hover{background:rgba(127,127,127,.22)}.ds-sw-btn[aria-expanded=\"true\"]{background:rgba(127,127,127,.3)}.ds-sw-btn:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}@media (pointer:coarse){.ds-sw-btn{width:44px;height:44px}}.ds-sw-pop{width:324px;max-width:100%;padding:12px;background:var(--surface,#282827);border:1px solid var(--border,#454542);border-radius:var(--radius-lg,11px);box-shadow:var(--shadow-panel,0 12px 40px rgba(0,0,0,.5));box-sizing:border-box}.ds-sw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.ds-sw-app{display:grid;justify-items:center;align-content:start;gap:6px;padding:12px 4px 10px;min-height:84px;border-radius:var(--radius,8px);color:var(--text2,#d2d2ce);text-decoration:none;text-align:center;font-size:13px;line-height:1.25;overflow-wrap:anywhere;cursor:pointer;box-sizing:border-box}.ds-sw-app:hover{background:var(--bg,#1c1c1b);color:var(--text,#fff)}.ds-sw-app[aria-current=\"page\"]{background:var(--bg2,#333331);color:var(--text,#fff);font-weight:600}.ds-sw-foot{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:10px;border-top:1px solid var(--border,#454542)}.ds-sw-who{flex:1;min-width:0;display:grid}.ds-sw-who b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-sw-who span{color:var(--text3,#b0b0ab);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-sw-home{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 10px;border-radius:var(--radius,8px);color:var(--text2,#d2d2ce);text-decoration:none;font-weight:600;white-space:nowrap;cursor:pointer}.ds-sw-home:hover{background:var(--bg,#1c1c1b);color:var(--text,#fff)}.ds-sw-app:focus-visible,.ds-sw-home:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}@media (max-width:699px),(pointer:coarse){.ds-sw-home{height:44px}}@media (max-width:699px){.ds-sw-app{min-height:92px;font-size:14.5px}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Front Door",
+    "overview": "The hub is a front door, not a merged system. A signed-in person opens it between other work, at a desk PC and often in a window snapped to half a screen, to step into one of the Stella apps or straight to the thing that is waiting inside one. So each app is one tile, and the tile's face is that app's own overview: where to go and what needs attention are the same object. The whole tile is a door, and each line on it is a smaller door to one thing.\n\nIt wears the family's look and owns none of it. The colour, type, spacing and motion tokens are the Stella family's, copied unchanged from a sibling app and fixed. The hub builds its components on those tokens and brings no palette of its own, so a theme changes variables and cannot miss a spot. Dark Stella is the default, and the light Workshop theme is a variable override for bright rooms. The page is greyscale at rest: red is one filled button at most and otherwise a line or a marker, amber marks what is late or wants doing, and nothing casts a shadow unless it floats above the page and will go away.\n\nThere are two layers. The hub's own page (the front page, Accounts and the account log) is drawn by `css/hub.css` on the family tokens. The shared core draws a few things inside the other apps' pages: the sign-in screen, the no-access cards, the change-password dialog, the app switcher and a toast. Those pages have stylesheets the hub does not own, so everything the core draws sits under one root element, starts from a clean slate, and carries its own short-named copy of the family tokens. That copy is kept in step by hand.",
+    "keyCharacteristics": [
+      "One tile per app, with that app's overview on its face. The tile is a door, and so is each line on it.",
+      "The Stella family's tokens, fixed. Dark by default, light Workshop by variable override.",
+      "Greyscale at rest. Red is one filled button at most, and otherwise a line or a marker. Amber marks what is late or wants doing.",
+      "Friz Quadrata names places. The body face does every line, label and control.",
+      "Flat surfaces told apart by tone and a 1px edge. Shadows only on what floats.",
+      "Room is held before content arrives: flat skeletons the size of the lines, no shimmer and no shift.",
+      "Built for a desk and a half-screen window first, with 44px targets on phones and touch screens.",
+      "Words only where a control needs them: a label, a rule, an error.",
+      "A shared core, drawn inside the other apps, with its own hand-kept copy of the tokens."
+    ],
+    "rules": [
+      {
+        "name": "The Family Tokens Rule",
+        "body": "Every colour, size and curve comes from the family's stylesheet. The hub's own stylesheet names no colour, so a theme overrides variables and cannot miss a spot. The one exception is the white label on a toast. The tokens change only with the owner's approval.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Red Rule",
+        "body": "Upsdell Red fills one primary button in a view or dialog, and the toast for something that did not work. Burning Star Red is a line or a marker (the header rule, the current tab, focus, a caret, a destructive outline, a count) and never fills anything larger than a count bubble.",
+        "section": "colors"
+      },
+      {
+        "name": "The Amber Rule",
+        "body": "Amber means late or wants doing, and nothing else. It always sits on words or figures that say the same thing: a date that has passed, a sentence, a button's label.",
+        "section": "colors"
+      },
+      {
+        "name": "The Friz-for-Places Rule",
+        "body": "Friz Quadrata names where you are or what you are being asked: the hub, an app, a page, a section, a dialog. Anything read in a line or pressed is in the body face. A line's title, a button, a tab and a label are never set in Friz.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Numbers Rule",
+        "body": "Dates, ages and counts use tabular figures, so a column of them lines up and does not jitter as it changes.",
+        "section": "typography"
+      },
+      {
+        "name": "The 16px Field Rule",
+        "body": "On phones and touch screens a field's text is 16px, so iOS never zooms the page on focus. The core's fields are 16px at every width, because the core cannot know the page it is drawn in.",
+        "section": "typography"
+      },
+      {
+        "name": "The Half-Screen Rule",
+        "body": "Every screen has to hold at about 900px wide (a window snapped beside CAD) as well as at 390px and 1440px, and the review screenshots are taken at all three. Nothing depends on width above 1100px except the page's padding.",
+        "section": "layout"
+      },
+      {
+        "name": "The Held Space Rule",
+        "body": "A tile holds the room for its card from the moment it is drawn: 206px, which is a 36px label and three 56px lines with the two 1px rules between them. The card arrives into exactly that, so the page does not move.",
+        "section": "layout"
+      },
+      {
+        "name": "The 44px Rule",
+        "body": "On a phone or a touch screen everything that can be pressed is at least 44px tall, or is given that much room to be hit. A 22px chip that is a button reaches 11px past its own top and bottom.",
+        "section": "layout"
+      },
+      {
+        "name": "The Floating-Only Shadow Rule",
+        "body": "Nothing at rest casts a shadow. Tiles, grids, lists and rows are flat. A shadow means \"this is above the page and will go away\".",
+        "section": "elevation"
+      },
+      {
+        "name": "The Dashed Rule",
+        "body": "A dashed edge means nothing here, or not yours to change: the empty box, a disabled button, a disabled field. A solid edge is never used for either.",
+        "section": "shapes"
+      },
+      {
+        "name": "The One Stroke Rule",
+        "body": "Every icon is a 1.8 stroke on a 24 grid with round caps and joins. Dots are the only filled shapes: the three dots of \"more\", the point of the exclamation mark, and the nine dots of the switcher button.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** build every component on the family variables, in `css/hub.css` or under the core's root, so the Workshop theme cannot miss a spot.",
+      "**Do** change the core's copy of a token in the same change as the family's value, in both themes, using the table under The core's copy.",
+      "**Do** check every screen at 390px, about 900px and 1440px, on a touch screen, and in both themes.",
+      "**Do** hold the room for anything that loads after the page, with flat blocks the size of what they stand for (the Held Space Rule).",
+      "**Do** give everything that can be pressed 44px of height on phones and touch screens, or that much room to be hit.",
+      "**Do** show focus as the 2px ring in the focus colour, 2px outside the element, or 2px inside where an outer ring would be clipped.",
+      "**Do** set dates, ages and counts in tabular figures.",
+      "**Do** outline the destructive button in a confirm, and start that confirm with focus on Cancel.",
+      "**Do** say what failed in the heading of an error, and offer one way on.",
+      "**Do** draw an icon as a 1.8 stroke on a 24 grid in the text colour.",
+      "**Do** write in plain Australian English."
+    ],
+    "donts": [
+      "**Don't** change the family tokens in `css/style.css` or `css/themes.css`, or the Friz Quadrata headings, without the owner's approval.",
+      "**Don't** ship the licensed font files (Friz Quadrata, Sweet Sans Pro).",
+      "**Don't** fill more than one button in a view or dialog with Upsdell Red, and never fill anything larger than a count bubble with Burning Star Red.",
+      "**Don't** put a shadow on a tile, a grid, a row or anything else at rest.",
+      "**Don't** use amber for anything that is not late or wanting to be done.",
+      "**Don't** set a line's title, a button, a tab, a label or a field in Friz Quadrata.",
+      "**Don't** animate anything on load, shimmer a skeleton, or let the page move when content arrives.",
+      "**Don't** use a Unicode character as an icon.",
+      "**Don't** add words a control does not need: no reassurance and no paragraphs of explanation. A confirm may say what will happen in a sentence.",
+      "**Don't** put a real name or address in a mock-up, a fixture or an example. Demo content is invented."
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+.DS_Store
+Thumbs.db
+node_modules/
+*.log
+__pycache__/
+.firebase/
+
+# Licensed brand fonts (Friz Quadrata, Sweet Sans). Headings use them when they
+# are installed on the machine and fall back otherwise. Never commit them.
+fonts/
+*.ttf
+*.otf
+*.woff
+*.woff2
+
+# Anything private belongs outside this folder altogether (../handoff and
+# ../SETUP.md): this repository is public.
+
+# Design working files: the review screenshots (tools/shots.mjs makes them again)
+# and the layout sketches. The brief (.impeccable/surfaces/) and the recorded
+# system (.impeccable/design.json) ARE kept.
+.impeccable/review/
+.impeccable/mocks/

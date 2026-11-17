@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Stand-in app</title>
+<script>
+  try { if (localStorage.getItem('lab.theme') === 'workshop') document.documentElement.dataset.theme = 'workshop'; } catch (e) {}
+</script>
+<link rel="icon" href="/images/brand/stella-icon.png">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/themes.css">
+<link rel="stylesheet" href="/css/hub.css">
+</head>
+<body>
+<!--
+  A STAND-IN FOR ONE OF THE APPS, for the demo.
+
+  It does what a real app's page does with the hub, and nothing else: it has a
+  sign-in of its own (kept in localStorage here; Firebase in a real app), it
+  calls Hub.connect with that sign-in, and it gives the switcher a place in
+  its header. The lines marked CONTRACT are the whole of what an app adds.
+
+  Its "accounts" are the demo's invented ones (js/fake.js). With a real hub
+  project configured this page has nothing to stand in for and says so.
+-->
+<div class="app">
+  <header class="hd">
+    <span class="hd-logo" aria-hidden="true"></span>
+    <span class="hd-title" id="title">Stand-in app</span>
+    <span class="sp"></span>
+    <span class="who" id="who"></span>
+    <span id="hubSlot"></span>
+  </header>
+  <div class="mode-note">This page stands in for one of the apps, to try the sign-in and the switcher. It is part of the demo.</div>
+  <main class="view" id="view"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module">
+import { Hub } from '/core/v1/hub.js';                                   // CONTRACT
+import { HUB_CONFIG } from '/core/v1/hub-impl.js';
+import { PROJECTS, HUB_NAME } from '/js/registry.js';
+import { roleOf, roleLabel } from '/js/access.js';
+import { demo } from '/js/fake.js';
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) { if (k === 'class') n.className = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v); }
+  n.append(...kids.filter((c) => c !== null && c !== undefined));
+  return n;
+};
+
+const pid = new URLSearchParams(location.search).get('app') ?? Object.keys(PROJECTS)[0];
+const project = PROJECTS[pid];
+const view = $('view');
+
+if (HUB_CONFIG.apiKey || !project) {
+  view.append(el('div', { class: 'state-msg' },
+    el('h1', { class: 'h1' }, 'Nothing to stand in for'),
+    el('p', {}, project ? 'The hub has a real project now, and the stand-in app only knows the demo.' : 'That is not an app the hub knows.'),
+    el('a', { class: 'btn', href: '/' }, `Open ${HUB_NAME}`)));
+} else {
+  $('title').textContent = project.title;
+  document.title = `${project.title} (stand-in)`;
+
+  // This app's OWN sign-in. A real app has Firebase here.
+  const world = demo();
+  const KEY = `lab.session.${pid}`;
+  const own = {
+    session: () => localStorage.getItem(KEY),
+    signIn: async ({ email, password }) => {
+      const account = world.apps[pid]?.users[email];
+      if (!account || account.password !== password) throw Object.assign(new Error('auth/invalid-credential'), { code: 'auth/invalid-credential' });
+      localStorage.setItem(KEY, email);
+    },
+    signOut: async () => { localStorage.removeItem(KEY); },
+  };
+
+  const r = await Hub.connect({ project: pid, title: project.title, ...own });   // CONTRACT
+  Hub.switcher($('hubSlot'), { current: pid });                                  // CONTRACT
+  Hub.onChange((me) => {                                                         // CONTRACT
+    if (r.state !== 'legacy' && (me?.email ?? null) !== own.session()) location.reload();
+  });
+
+  const email = own.session();
+  $('who').textContent = email ?? '';
+  if (r.state === 'in' || r.state === 'legacy') {
+    const model = project.access.fixed ? null : project.access;
+    const role = model ? roleOf(model, world.apps[pid].access, email) : null;
+    const reload = () => location.reload();
+    const light = document.documentElement.dataset.theme === 'workshop';
+    view.append(
+      el('div', { class: 'page-head' }, el('h1', { class: 'h1' }, `Signed in to ${project.title}`)),
+      el('p', { class: 'lede' }, `${email}${role ? `, ${roleLabel(model, role)}` : ''}. ${r.state === 'legacy' ? 'This device has not met the hub: it carries on as before.' : 'Through the hub, with no screen in between.'}`),
+      el('div', { class: 'actions', style: 'margin-top: 16px' },
+        el('button', { class: 'btn', type: 'button', onclick: async () => { await own.signOut(); reload(); } }, 'Sign out of this app only'),
+        el('button', { class: 'btn', type: 'button', onclick: async () => { await Hub.signOut(); reload(); } }, 'Sign out everywhere'),
+        el('button', { class: 'btn', type: 'button', onclick: () => Hub.openPassword() }, 'Password'),
+        el('button', { class: 'btn', type: 'button', onclick: () => { localStorage.setItem('lab.theme', light ? 'stella' : 'workshop'); reload(); } }, light ? 'Dark' : 'Light'),
+        el('button', { class: 'btn ghost', type: 'button', onclick: () => { localStorage.removeItem('stella.hub.session'); reload(); } }, 'Show it as a device from before the hub'),
+        el('a', { class: 'btn ghost', href: '/' }, `Back to ${HUB_NAME}`)));
+  }
+}
+</script>
+</body>
+</html>

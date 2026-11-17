@@ -1,0 +1,293 @@
+/* ═══════════════════════════════════════════════════════════════════
+   THE HUB PAGE — its components, on the family tokens (css/style.css).
+   No rule here carries a colour of its own: a theme (css/themes.css)
+   overrides variables and cannot miss a spot.
+
+   The sign-in screen, the "no access" cards, the password dialog and the
+   app switcher are NOT here. Those are drawn by the shared core
+   (core/v1/hub-impl.js), which carries its own styles because it also
+   draws them inside the other apps' pages.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* The parts of the page the browser draws: selection, caret, scrollbars. */
+::selection { background: var(--select-bg); color: var(--select-text); }
+html { scrollbar-color: var(--border2) var(--ground); }
+input, textarea { caret-color: var(--focus); }
+
+/* `hidden` has to win over a component's own `display`. */
+[hidden] { display: none !important; }
+
+.app { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+.sp { flex: 1; }
+
+/* ── Header ───────────────────────────────────────────────────────── */
+.hd { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: var(--sp-4);
+      height: 56px; padding: 0 var(--sp-5); background: var(--header-bg); color: var(--header-text);
+      border-bottom: var(--header-line); }
+.hd-logo { width: var(--logo-w); height: 32px; background: var(--logo) center / contain no-repeat; flex-shrink: 0; }
+.hd-title { font-family: var(--font-head); font-weight: 700; font-size: var(--fs-lg); line-height: 1.25;
+            letter-spacing: var(--title-spacing); text-transform: var(--title-transform); white-space: nowrap; }
+.tabs { display: flex; align-self: stretch; gap: var(--sp-1); margin-left: var(--sp-2); min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.tabs a { display: flex; align-items: center; padding: 3px var(--sp-3) 0; color: var(--header-muted); font-weight: 600;
+          text-decoration: none; white-space: nowrap; border-bottom: 3px solid transparent; }
+.tabs a:hover { color: var(--header-text); }
+.tabs a[aria-current="page"] { color: var(--header-text); border-bottom-color: var(--tab-active); }
+/* The light theme's tab colour is ink, made for tabs on a light bar. On the hub's
+   ink header that underline would vanish, so there the current tab is underlined
+   in its own label colour. */
+[data-theme="workshop"] .tabs a[aria-current="page"] { border-bottom-color: currentColor; }
+.tabs a:focus-visible { outline-offset: -2px; }
+.who { color: var(--header-muted); font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ib { display: inline-grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border: 0; border-radius: var(--radius);
+      background: transparent; color: inherit; }
+.ib:hover { background: var(--bg2); }
+
+/* The strip under the header that says this is the demo. */
+.mode-note { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); padding: var(--sp-2) var(--sp-5);
+             background: var(--bg); border-bottom: 1px solid var(--border); color: var(--text2); font-size: var(--fs-sm); }
+.mode-note label { display: inline-flex; align-items: center; gap: var(--sp-2); }
+
+.view { flex: 1; width: 100%; max-width: 1344px; margin: 0 auto; padding: var(--sp-5); }
+.view:focus { outline: none; }
+
+/* ── Controls ─────────────────────────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); height: 36px; padding: 0 14px;
+       border: 1px solid var(--border2); border-radius: var(--radius); background: transparent; color: var(--text2);
+       font-weight: 600; white-space: nowrap; text-decoration: none;
+       transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.btn:hover { background: var(--bg); color: var(--text); }
+.btn:active { background: var(--bg2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.btn.primary:hover { filter: brightness(1.12); }
+.btn.primary:active { filter: brightness(.94); }
+.btn.ghost { border-color: transparent; color: var(--text3); font-weight: 400; padding: 0 10px; }
+.btn.ghost:hover { color: var(--text); }
+.btn.danger { border-color: var(--red); color: var(--red-text); }
+.btn.amber { border-color: var(--amber); color: var(--amber-text); }
+.btn.small { height: 28px; padding: 0 10px; font-size: var(--fs-sm); }
+.btn:disabled, .btn.primary:disabled { color: var(--text3); background: transparent; border-color: var(--border); border-style: dashed; filter: none; cursor: default; }
+
+.input, .sel { height: 36px; min-width: 0; padding: 0 12px; background: var(--bg); color: var(--text);
+               border: 1px solid var(--border); border-radius: var(--radius); }
+.input { width: 100%; }
+.sel { padding: 0 8px; max-width: 100%; }
+/* Focus is the family's ring (css/style.css), on fields as on everything else.
+   What went wrong is said in the red text colour, never the link colour: in
+   the light theme a link is blue. */
+.input[aria-invalid="true"] { border-color: var(--red-text); }
+.sel:disabled, .input:disabled { color: var(--text3); border-style: dashed; }
+.field { display: grid; gap: 6px; }
+.field > label, .cap { font-size: var(--fs-micro); font-weight: 700; letter-spacing: var(--label-spacing); text-transform: uppercase; color: var(--text3); }
+.hint { color: var(--text3); font-size: var(--fs-sm); }
+.form-err { color: var(--red-text); font-size: var(--fs-sm); min-height: 18px; overflow-wrap: anywhere; }
+.reveal-wrap { position: relative; }
+.reveal-wrap .input { padding-right: 64px; }
+.reveal { position: absolute; right: 4px; top: 4px; height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent;
+          color: var(--text3); font-size: var(--fs-sm); }
+.reveal:hover { color: var(--text); background: var(--bg2); }
+.check { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 36px; color: var(--text2); }
+.check input { width: 18px; height: 18px; accent-color: var(--text2); }
+
+.chip { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: var(--radius-pill);
+        background: var(--bg2); color: var(--text2); font-size: var(--fs-sm); white-space: nowrap; }
+.chip.amber { background: var(--amber-bg); color: var(--amber-text); }
+.chip.outline { background: transparent; border: 1px solid var(--border2); color: var(--text3); }
+/* A chip that is also the button for what it names ("Linked", and its menu). */
+.chip-btn { position: relative; gap: 4px; padding-right: 6px; font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+.chip-btn:hover, .chip-btn[aria-expanded="true"] { color: var(--text); border-color: var(--text3); }
+.count { display: inline-block; min-width: 18px; padding: 1px 6px; border-radius: var(--radius-pill); background: var(--count-bg); color: var(--count-text);
+         font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0; line-height: 1.45; text-align: center; font-variant-numeric: tabular-nums; }
+/* In the light theme the family's count is amber on a pale fill, which on a white
+   tile is a numeral with no bubble round it. An edge in its own colour makes it
+   one again. Neither count token is touched: those are the family's. */
+[data-theme="workshop"] .count { box-shadow: inset 0 0 0 1px currentColor; }
+
+/* ── Front page: one tile per app, its overview on its face ───────── */
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.tile { position: relative; display: flex; flex-direction: column; min-width: 0; padding: var(--sp-4) 20px var(--sp-3);
+        background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+/* The whole tile is the door: a link laid under its content. Lines and page
+   links sit above it and are doors of their own. */
+.tile-go { position: absolute; inset: 0; z-index: 0; border-radius: inherit; }
+.tile-go:focus-visible { outline-offset: -2px; }
+.tile > :not(.tile-go) { position: relative; z-index: 1; pointer-events: none; }
+.tile a:not(.tile-go), .tile button { pointer-events: auto; }
+@media (hover: hover) { .tile:has(.tile-go:hover) { border-color: var(--border2); } }
+.t-head { display: flex; align-items: center; gap: var(--sp-3); min-height: 36px; }
+.t-id { display: flex; align-items: center; flex-wrap: wrap; gap: 2px var(--sp-3); flex: 1; min-width: 0; }
+.t-ico { color: var(--text2); flex-shrink: 0; }
+.t-name { font-family: var(--font-head); font-weight: 700; font-size: var(--fs-lg); line-height: 1.25; min-width: 0; overflow-wrap: anywhere; }
+.t-role { color: var(--text3); font-size: var(--fs-sm); white-space: nowrap; }
+.t-chev { color: var(--text3); flex-shrink: 0; }
+.t-label { display: flex; align-items: center; gap: var(--sp-2); min-height: 20px; margin: 14px 0 2px; font-size: var(--fs-micro); font-weight: 700;
+           letter-spacing: var(--label-spacing); text-transform: uppercase; color: var(--text3); }
+.lines { list-style: none; }
+.lines li + li { border-top: 1px solid var(--bg2); }
+.line { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--sp-4); align-items: center;
+        min-height: 56px; margin: 0 -8px; padding: 6px 8px; border-radius: var(--radius); color: inherit; text-decoration: none; }
+a.line:hover { background: var(--bg); }
+.l-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.l-sub { grid-column: 1; color: var(--text3); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.l-when { grid-column: 2; grid-row: 1 / span 2; color: var(--text2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.l-when.late { color: var(--amber-text); }
+.t-quiet { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); color: var(--text3); font-size: var(--fs-sm); padding: 14px 0 6px; }
+.t-foot { display: flex; flex-wrap: wrap; gap: 0 var(--sp-4); margin-top: auto; padding-top: var(--sp-2); border-top: 1px solid var(--border); font-size: var(--fs-sm); }
+/* Page links are quiet: on this page the only red is the header rule, the
+   focus ring and a count. */
+.t-foot a { padding: 6px 0; color: var(--text2); text-decoration: underline; text-decoration-color: var(--border2); text-underline-offset: 3px; }
+.t-foot a:hover { color: var(--text); text-decoration-color: currentColor; }
+/* A card still on its way: flat blocks exactly the size of the lines they
+   stand for (a 56px line, and the 1px rule between two). No shimmer. */
+.skel { position: relative; height: 56px; }
+.skel + .skel { margin-top: 1px; }
+.skel::before { content: ""; position: absolute; inset: 6px 0; border-radius: var(--radius); background: var(--bg); border: 1px solid var(--bg2); }
+
+/* ── Pages for a hub master ───────────────────────────────────────── */
+.page-head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.h1 { font-family: var(--font-head); font-weight: 700; font-size: var(--fs-lg); line-height: 1.25; }
+.h2 { font-family: var(--font-head); font-weight: 700; font-size: var(--fs-md); line-height: 1.3; margin: var(--sp-6) 0 var(--sp-2); }
+.callout { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: 12px 14px; margin-bottom: var(--sp-4);
+           border-radius: var(--radius-lg); background: var(--bg); border: 1px solid var(--border); }
+.callout.amber { background: var(--amber-bg); border-color: transparent; color: var(--amber-text); }
+.callout .btn { border-color: currentColor; color: inherit; margin-left: auto; }
+.callout svg { flex-shrink: 0; }
+.callout-text { flex: 1 1 200px; min-width: 0; }
+
+/* `relative` keeps the table's screen-reader-only labels inside the scroller;
+   without it they push the whole page sideways on a phone. */
+.grid-wrap { position: relative; overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+/* While more columns lie to the right, the trailing edge is shaded with the
+   band colour (a step off the surface in either theme), so it shows over a
+   cut cell AND over an empty gap between columns: the edge reads as "this
+   scrolls", not as a mistake. js/views/accounts.js sets `more` as the grid is
+   scrolled or resized. */
+.grid-shell { position: relative; }
+.grid-shell.more::after { content: ""; position: absolute; top: 1px; right: 1px; bottom: 1px; width: 40px; pointer-events: none;
+                          border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+                          background: linear-gradient(to right, transparent, var(--bg)); }
+.acct { width: 100%; border-collapse: collapse; }
+.acct th { padding: 12px 12px 8px; text-align: left; vertical-align: bottom; white-space: nowrap; border-bottom: 1px solid var(--border2);
+           font-size: var(--fs-micro); font-weight: 700; letter-spacing: var(--label-spacing); text-transform: uppercase; color: var(--text3); }
+.acct th .chip { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.th-notes { display: flex; gap: 4px; margin-bottom: 6px; }
+.acct td { padding: 6px 12px; vertical-align: middle; border-bottom: 1px solid var(--bg2); }
+.acct tr:last-child td { border-bottom: 0; }
+/* The person stays put while the apps scroll under them; the rule on its
+   inner edge is what shows cells passing beneath. The person's own menu sits
+   here too, so it is on screen at every width. */
+.acct .who-col { position: sticky; left: 0; z-index: 1; min-width: 232px; max-width: 300px; background: var(--surface);
+                 box-shadow: inset -1px 0 0 var(--border); }
+.person { display: flex; align-items: center; gap: 6px; }
+.person-id { flex: 1; min-width: 0; }
+.person .ib { width: 28px; height: 28px; color: var(--text3); }
+.person .ib:hover { color: var(--text); }
+.p-name { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.p-name span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.p-mail { color: var(--text3); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct tr.off .p-name span:first-child, .acct tr.off .p-mail { color: var(--text3); text-decoration: line-through; }
+.cell { display: flex; align-items: center; gap: 6px; min-height: 40px; }
+.cell .sel { width: 120px; }
+.cell .ib { width: 28px; height: 28px; color: var(--text3); }
+.cell .ib:hover { color: var(--text); }
+.none { color: var(--text3); }
+
+/* Addresses an app lists that the hub has no person for. */
+.strays { list-style: none; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.strays li { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); min-height: 52px; padding: 8px 12px; }
+.strays li + li { border-top: 1px solid var(--bg2); }
+.s-mail { flex: 1 1 220px; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.s-on { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 160px; min-width: 0; }
+
+.log-row { display: grid; grid-template-columns: 132px 176px minmax(0, 1fr); gap: var(--sp-3); align-items: baseline; padding: 10px 4px;
+           border-bottom: 1px solid var(--bg2); }
+.log-row .when { color: var(--text2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.log-row .by { color: var(--text3); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log-row .what { overflow-wrap: anywhere; }
+
+/* ── States ───────────────────────────────────────────────────────── */
+.empty { padding: var(--sp-4); border: 1px dashed var(--border2); border-radius: var(--radius-lg); color: var(--text3); }
+.empty b { color: var(--text2); font-weight: 600; }
+.state-msg { max-width: 62ch; padding: var(--sp-5) 0; color: var(--text2); display: grid; gap: var(--sp-3); justify-items: start; }
+.fresh { display: grid; gap: var(--sp-2); padding: 12px 14px; border-radius: var(--radius-lg); background: var(--bg); border: 1px solid var(--border); }
+.fresh-line { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); }
+.fresh code { font-family: var(--mono); font-size: var(--fs-md); letter-spacing: .04em; user-select: all; overflow-wrap: anywhere; }
+.steps { display: grid; gap: var(--sp-2); padding-left: 20px; color: var(--text2); }
+
+/* ── Dialogs (js/dialog.js) ───────────────────────────────────────── */
+.overlay { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; padding: var(--sp-4); overflow: auto; background: var(--scrim); }
+.overlay.show { display: grid; }
+.box { width: 100%; max-width: 440px; display: grid; gap: 14px; padding: 20px; background: var(--panel-bg); border: 1px solid var(--border);
+       border-radius: var(--radius-lg); box-shadow: var(--shadow-panel); animation: rise var(--dur) var(--ease-out); }
+.box.wide { max-width: 640px; }
+.box h3 { font-family: var(--font-head); font-weight: 700; font-size: var(--fs-md); line-height: 1.3; }
+.lede { color: var(--text2); overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+/* ── Menu and toast: the only things that float ───────────────────── */
+.menu { position: fixed; z-index: 60; min-width: 200px; max-width: min(320px, calc(100vw - 16px)); padding: 4px; background: var(--panel-bg);
+        border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-panel); animation: rise var(--dur-fast) var(--ease-out); }
+.menu-item { display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-height: 36px; padding: 0 10px; border: 0; border-radius: 6px;
+             background: transparent; color: var(--text2); text-align: left; }
+.menu-item:hover, .menu-item:focus-visible { background: var(--bg); color: var(--text); outline: none; }
+.menu-item.danger { color: var(--red-text); }
+.menu-item:disabled { color: var(--text3); cursor: default; background: transparent; }
+.menu-label { flex: 1; }
+.menu-hint { color: var(--text3); font-size: var(--fs-sm); }
+.menu-gap { width: 16px; flex-shrink: 0; }
+/* Plain, not capitals: a heading here is usually somebody's address. */
+.menu-head { padding: 8px 10px 4px; font-size: var(--fs-sm); color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-sep { height: 1px; margin: 4px 0; background: var(--border); }
+
+.toast { position: fixed; left: 50%; bottom: var(--sp-5); z-index: 70; max-width: min(560px, calc(100vw - 32px)); padding: 10px 14px;
+         border-radius: var(--radius); background: var(--toast-bg); color: #fff; font-weight: 600; box-shadow: var(--shadow-panel);
+         opacity: 0; transform: translate(-50%, 8px); transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.warn { background: var(--toast-warn-bg); }
+
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+
+/* ── Width bands: phone under 700, desk from 1100 ─────────────────── */
+@media (min-width: 1100px) {
+  .view { padding: 28px 48px var(--sp-6); }
+}
+@media (max-width: 699px) {
+  /* The tabs get a row of their own under the name, so none is cut short. */
+  .hd { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: 56px; column-gap: var(--sp-3);
+        height: auto; padding: 0 var(--sp-3) 0 var(--sp-4); }
+  .hd > .sp, .who { display: none; }
+  .hd-title { overflow: hidden; text-overflow: ellipsis; }
+  .tabs { grid-column: 1 / -1; grid-row: 2; height: var(--touch); margin: 0 calc(-1 * var(--sp-3)); }
+  .view { padding: var(--sp-4); }
+  .mode-note { padding: var(--sp-2) var(--sp-4); }
+  .tiles { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+  .tile { padding: var(--sp-3) var(--sp-4); }
+  /* Narrower, so an app's column shows beside it; a name too long for one line
+     drops its chip under it instead of being cut to a few letters. */
+  .acct .who-col { min-width: 184px; max-width: 184px; }
+  .p-name { flex-wrap: wrap; row-gap: 2px; }
+  /* The address is what every confirm, toast and log line names a login by: it wraps, it is never cut. */
+  .p-mail { white-space: normal; overflow-wrap: anywhere; }
+  .log-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .log-row .what { grid-column: 1 / -1; }
+}
+/* Fingers: a phone by its width, an iPad by its pointer. Everything that can
+   be pressed is at least 44px tall, or is given that much room to be hit. */
+@media (max-width: 699px), (pointer: coarse) {
+  .btn, .btn.small, .input, .sel, .ib, .cell .ib, .person .ib { height: var(--touch); }
+  .ib, .cell .ib, .person .ib { width: var(--touch); }
+  .input, .sel { font-size: var(--fs-md); }
+  .reveal { top: 0; right: 0; height: 100%; padding: 0 14px; }
+  .menu-item, .check { min-height: var(--touch); }
+  .t-foot a { padding: 13px 0; }       /* 13px text at 1.4 plus 26px: 44px */
+  .cell { min-height: 52px; }
+  .chip-btn::after { content: ""; position: absolute; inset: -11px -4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .box, .menu { animation: none; }
+  .toast { transition: none; }
+}
+
+/* Space held for a card from the moment its tile is drawn, at every width: a
+   label (36px) and three lines (56px each, with the two 1px rules between
+   them). The card arrives into exactly that, so the page does not move. */
+.t-face.has-card { min-height: 206px; }

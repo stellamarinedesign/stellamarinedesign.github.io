@@ -1,0 +1,6 @@
+# This file sits at the root of stellamarinedesign.github.io, so it speaks for
+# every site under it. These are internal tools: keep them out of search.
+# The one public page is let through.
+User-agent: *
+Allow: /pieter-scott/
+Disallow: /

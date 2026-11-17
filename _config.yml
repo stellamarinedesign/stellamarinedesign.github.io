@@ -1,0 +1,21 @@
+# GitHub Pages publishes the whole repository tree by default, and a static
+# site hands its files to whoever asks, no sign-in involved. Jekyll's
+# `exclude` list is what keeps a file out of the published site (the board
+# learned this the hard way). Do NOT add .nojekyll without replacing this.
+#
+# Jekyll already skips dot-folders and anything starting with an underscore.
+#
+# THIS REPO IS THE SITE ROOT (stellamarinedesign.github.io), so a folder here
+# sits beside every other repo's site. Never name a Pages repo on this account
+# core, js, css, images, lab or tests: its site would land on these folders.
+exclude:
+  - tests/
+  - tools/
+  - README.md
+  - PRODUCT.md
+  - DESIGN.md
+  - firestore.rules
+  - firebase.json
+  - _config.yml
+  - .gitignore
+  - .gitattributes

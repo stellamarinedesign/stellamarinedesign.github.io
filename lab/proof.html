@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Proof: material ordering (test)</title>
+<script>
+  try { const t = localStorage.getItem('stella.hub.theme'); if (t && t !== 'stella') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="icon" href="/images/brand/stella-icon.png">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/themes.css">
+<link rel="stylesheet" href="/css/hub.css">
+<style>
+  .readout { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 16px 0 20px; max-width: 760px; }
+  .readout dt { color: var(--text3); font-size: var(--fs-sm); padding-top: 1px; }
+  .readout dd { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+  .own { display: grid; gap: 12px; max-width: 352px; margin-top: 8px; }
+  @media (max-width: 699px) { .readout { grid-template-columns: minmax(0, 1fr); gap: 2px; } .readout dd { margin-bottom: 8px; } }
+</style>
+<!-- Material ordering's own SDK, loaded the way its pages load it: compat 9.23.0, classic scripts. -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-check-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<!--
+  THE PROOF PAGE (Phase 2 in the private plan): a stand-in for material
+  ordering AFTER it has joined the hub, run against material ordering's TEST
+  project (material-ordering-testing) and nothing else.
+
+  It is built the way material ordering is built, so what works here will
+  work there: the compat 9.23.0 SDK in classic scripts, App Check with the same
+  reCAPTCHA site key, the app's own Firebase session, and the hub reached
+  through a dynamic import() from a classic script. Its Firebase app is a
+  NAMED one ("hub-proof"), so its session never mixes with material ordering's
+  own test mode on the same device.
+
+  It shows what happened, for the proof checklist: the answer Hub.connect gave,
+  whether the hub's code and the hub's project were touched at all (the fast
+  path should touch neither), what the test project's own rules let this login
+  read, and the last answer the app's own sign-in gave.
+
+  Only useful once the hub has a real project (HUB_CONFIG in
+  core/v1/hub-impl.js). In demo mode it says so and does nothing.
+-->
+<div class="app">
+  <header class="hd">
+    <span class="hd-logo" aria-hidden="true"></span>
+    <span class="hd-title">Proof</span>
+    <span class="sp"></span>
+    <span class="who" id="who"></span>
+    <span id="hubSlot"></span>
+  </header>
+  <div class="mode-note">Stands in for material ordering against its test project only.</div>
+  <main class="view" id="view"></main>
+</div>
+
+<script>
+(async function () {
+  // material ordering's TEST project: public identifiers, as in its js/shared.js.
+  var TEST = {
+    apiKey: 'AIzaSyA-FhiK3Lr4-ioifSGJ7OvtTRwmmZfDrMY',
+    authDomain: 'material-ordering-testing.firebaseapp.com',
+    projectId: 'material-ordering-testing',
+    appId: '1:165316963515:web:4916fe002bab1b45cf8d9e',
+  };
+  var APPCHECK_SITE_KEY = '6LcvOCctAAAAAFXUhpQRg2c09P1g5l7qULqwZCbh';
+  var TITLE = 'Material ordering (test)';
+
+  var view = document.getElementById('view');
+  var t0 = performance.now();
+  function el(tag, props, kids) {
+    var n = document.createElement(tag);
+    Object.keys(props || {}).forEach(function (k) {
+      var v = props[k];
+      if (v === null || v === undefined || v === false) return;
+      if (k === 'class') n.className = v;
+      else if (k.indexOf('on') === 0) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? '' : v);
+    });
+    (kids || []).forEach(function (c) { if (c !== null && c !== undefined) n.append(c); });
+    return n;
+  }
+  function message(heading, text) {
+    view.replaceChildren(el('div', { class: 'state-msg' }, [el('h1', { class: 'h1' }, [heading]), el('p', {}, [text])]));
+  }
+
+  // ---- the hub must be real. Read the config from the PLAIN address: the core
+  // fetches its own copy with ?v=<build>, so the readout below can still tell
+  // whether the core needed it.
+  var HUB_CONFIG;
+  try { HUB_CONFIG = (await import('/core/v1/hub-impl.js')).HUB_CONFIG; }
+  catch (e) { message('The hub could not be loaded', String(e && e.message || e)); return; }
+  if (!HUB_CONFIG.apiKey) { message('Nothing to prove yet', 'The hub is still in demo mode. This page needs its real project.'); return; }
+
+  // ---- the app's own Firebase, as material ordering starts it
+  var app = firebase.initializeApp(TEST, 'hub-proof');
+  try { (app.appCheck ? app.appCheck() : firebase.appCheck(app)).activate(new firebase.appCheck.ReCaptchaV3Provider(APPCHECK_SITE_KEY), true); }
+  catch (e) { console.warn('[proof] App Check did not start:', e && e.message); }
+  var auth = app.auth();
+  await new Promise(function (resolve) { var off = auth.onAuthStateChanged(function () { off(); resolve(); }); });
+
+  var lastAnswer = '';
+  function signIn(o) {
+    return auth.signInWithEmailAndPassword(o.email, o.password).then(
+      function () { lastAnswer = 'signed in'; },
+      function (e) { lastAnswer = (e && e.code) || String(e); throw e; });
+  }
+
+  // ---- ?own: sign in the old way, as a device from before the hub would.
+  var params = new URLSearchParams(location.search);
+  function ownForm(note) {
+    var email = el('input', { class: 'input', id: 'pEmail', type: 'email', autocomplete: 'off', spellcheck: 'false' });
+    var pass = el('input', { class: 'input', id: 'pPass', type: 'password', autocomplete: 'off' });
+    var err = el('div', { class: 'form-err', role: 'alert' });
+    var go = el('button', { class: 'btn primary', type: 'submit' }, ['Sign in']);
+    var form = el('form', { class: 'own', novalidate: true }, [
+      el('div', { class: 'field' }, [el('label', { for: 'pEmail' }, ['Email, in the test project']), email]),
+      el('div', { class: 'field' }, [el('label', { for: 'pPass' }, ['Its own password']), pass]),
+      err, el('div', { class: 'actions' }, [go])]);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      go.disabled = true;
+      err.textContent = '';
+      signIn({ email: email.value.trim(), password: pass.value }).then(function () {
+        params.delete('own');
+        location.search = params.toString();
+      }, function (e2) { go.disabled = false; err.textContent = (e2 && e2.code) || 'That did not work.'; });
+    });
+    view.replaceChildren(el('div', { class: 'page-head' }, [el('h1', { class: 'h1' }, ['The old way'])]),
+      el('p', { class: 'lede' }, [note]), form);
+    email.focus();
+  }
+  if (params.has('own')) { ownForm('The app\'s own sign-in, with no hub. Afterwards the page asks the hub again.'); return; }
+
+  // ---- the whole of what an app adds
+  var hubModule = await import('/core/v1/hub.js');
+  var Hub = hubModule.Hub;
+  var r = await Hub.connect({
+    project: TEST.projectId,
+    title: TITLE,
+    session: function () { return auth.currentUser ? auth.currentUser.email : null; },
+    signIn: signIn,
+    signOut: function () { return auth.signOut(); },
+    legacy: function () { ownForm('The hub could not be reached, so the app falls back to its own sign-in.'); },
+  });
+  var took = Math.round(performance.now() - t0);
+  Hub.switcher(document.getElementById('hubSlot'), { current: TEST.projectId });
+  Hub.onChange(function (me) {
+    var own = auth.currentUser ? auth.currentUser.email : null;
+    if (r.state !== 'legacy' && (me ? me.email : null) !== own) location.reload();
+  });
+
+  // What was fetched to get here. The core's own code is fetched with ?v=; the
+  // hub's Firebase project is anything carrying its key or its project id.
+  var seen = performance.getEntriesByType('resource').map(function (x) { return x.name; });
+  var coreFetched = seen.some(function (u) { return /\/core\/(v1|next)\/hub-impl\.js\?v=/.test(u); });
+  var hubCalls = seen.filter(function (u) { return u.indexOf(HUB_CONFIG.apiKey) >= 0 || u.indexOf('projects/' + HUB_CONFIG.projectId + '/') >= 0; }).length;
+
+  if (r.state !== 'in' && r.state !== 'legacy') return;     // the core has drawn its card, or the old form is up
+
+  // What the test project's OWN rules let this login read: its lists.
+  var user = auth.currentUser;
+  document.getElementById('who').textContent = user ? user.email : '';
+  var role = '';
+  try {
+    var snap = await app.firestore().collection('settings').doc('access').get();
+    var d = snap.exists ? snap.data() : {};
+    var me = (user && user.email || '').toLowerCase();
+    var on = function (list) { return (d[list] || []).map(function (x) { return String(x).toLowerCase(); }).indexOf(me) >= 0; };
+    var masters = (d.masters && d.masters.length) ? d.masters : (d.managers || []).slice(0, 1);
+    role = on('managers') ? 'Manager' : on('engineers') ? 'Engineer' : on('floor') ? 'Floor' : 'on no list';
+    if (masters.map(function (x) { return String(x).toLowerCase(); }).indexOf(me) >= 0) role += ', master';
+  } catch (e) { role = 'refused: ' + ((e && e.code) || e); }
+
+  var HUB_NAME = 'the hub';
+  try { HUB_NAME = (await import('/js/registry.js')).HUB_NAME; } catch (e) { /* the words only */ }
+  function reload() { location.reload(); }
+  function row(k, v) { return [el('dt', {}, [k]), el('dd', {}, [v])]; }
+  view.replaceChildren(
+    el('div', { class: 'page-head' }, [el('h1', { class: 'h1' }, ['Signed in to ' + TITLE])]),
+    el('dl', { class: 'readout' }, [].concat(
+      row('Hub.connect', r.state + (r.state === 'legacy' ? ' (this device has not met the hub)' : '')),
+      row('Time to signed in', took + ' ms'),
+      row('The hub\'s code fetched', coreFetched ? 'yes' : 'no'),
+      row('Calls to the hub\'s project', String(hubCalls)),
+      row('This app\'s own session', user ? user.email + ' (' + user.uid + ')' : 'none'),
+      row('Its own lists say', role),
+      row('Last sign-in answer', lastAnswer || 'none on this load'),
+      row('Hub', Hub.version))),
+    el('div', { class: 'actions' }, [
+      el('button', { class: 'btn', type: 'button', onclick: reload }, ['Reload']),
+      el('button', { class: 'btn', type: 'button', onclick: function () { auth.signOut().then(reload); } }, ['Sign out of this app only']),
+      el('button', { class: 'btn', type: 'button', onclick: function () { Hub.signOut().then(reload); } }, ['Sign out everywhere']),
+      el('button', { class: 'btn', type: 'button', onclick: function () { Hub.openPassword(); } }, ['Password']),
+      el('button', { class: 'btn', type: 'button', onclick: function () { localStorage.removeItem('stella.hub.session'); reload(); } }, ['Forget the hub on this device']),
+      el('button', { class: 'btn', type: 'button', onclick: function () { auth.signOut().then(function () { location.search = 'own'; }); } }, ['Sign in the old way']),
+      el('a', { class: 'btn', href: '/' }, ['Open ' + HUB_NAME])]));
+})();
+</script>
+</body>
+</html>

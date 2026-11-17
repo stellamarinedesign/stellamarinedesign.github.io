@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hubinator</title>
+<meta name="description" content="Stella Marine Group's internal tools.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#282827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hubinator">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="images/brand/stella-icon.png">
+<link rel="apple-touch-icon" href="images/brand/stella-icon.png">
+<script>
+  // The per-device theme, applied before first paint so the page never
+  // flashes the wrong one. Same mechanism as the other Stella apps.
+  try { const t = localStorage.getItem('stella.hub.theme'); if (t && t !== 'stella') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="stylesheet" href="css/style.css?v=2026-11-17.1">
+<link rel="stylesheet" href="css/themes.css?v=2026-11-17.1">
+<link rel="stylesheet" href="css/hub.css?v=2026-11-17.1">
+<!-- importmap:start - every module named with the build's ?v=, so a page is never mixed with cached modules; regenerate with: python tools/importmap.py -->
+<script type="importmap">
+{
+  "imports": {
+    "./js/access.js": "./js/access.js?v=2026-11-17.1",
+    "./js/app.js": "./js/app.js?v=2026-11-17.1",
+    "./js/backend.js": "./js/backend.js?v=2026-11-17.1",
+    "./js/cards.js": "./js/cards.js?v=2026-11-17.1",
+    "./js/dialog.js": "./js/dialog.js?v=2026-11-17.1",
+    "./js/errors.js": "./js/errors.js?v=2026-11-17.1",
+    "./js/fake.js": "./js/fake.js?v=2026-11-17.1",
+    "./js/firebase.js": "./js/firebase.js?v=2026-11-17.1",
+    "./js/keys.js": "./js/keys.js?v=2026-11-17.1",
+    "./js/linking.js": "./js/linking.js?v=2026-11-17.1",
+    "./js/matrix.js": "./js/matrix.js?v=2026-11-17.1",
+    "./js/registry.js": "./js/registry.js?v=2026-11-17.1",
+    "./js/ui.js": "./js/ui.js?v=2026-11-17.1",
+    "./js/version.js": "./js/version.js?v=2026-11-17.1",
+    "./js/views/account-log.js": "./js/views/account-log.js?v=2026-11-17.1",
+    "./js/views/accounts.js": "./js/views/accounts.js?v=2026-11-17.1",
+    "./js/views/launcher.js": "./js/views/launcher.js?v=2026-11-17.1"
+  }
+}
+</script>
+<!-- importmap:end -->
+</head>
+<body>
+<div class="app" id="app">
+  <header class="hd">
+    <span class="hd-logo" aria-hidden="true"></span>
+    <span class="hd-title" id="hubName">Hubinator</span>
+    <nav class="tabs" id="tabs" aria-label="Main" hidden></nav>
+    <span class="sp"></span>
+    <span class="who" id="who"></span>
+    <button class="ib" type="button" id="cogBtn" aria-label="Settings" aria-haspopup="menu" aria-expanded="false" hidden></button>
+  </header>
+  <div class="mode-note" id="modeNote" hidden></div>
+  <main class="view" id="view" tabindex="-1"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script type="module" src="js/app.js?v=2026-11-17.1"></script>
+</body>
+</html>

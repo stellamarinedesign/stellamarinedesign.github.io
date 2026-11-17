@@ -1,0 +1,111 @@
+rules_version = '2';
+
+// Firestore security rules for the HUB project (stella-hubinator). Deployed from
+// this folder with `firebase deploy --only firestore:rules`. No address and no
+// uid lives here: who is what is the data these rules read.
+//
+// THE MODEL. The hub holds three things: who its masters are, who its people
+// are, and each person's app keys.
+//
+//   config/access            { masters: [uid, ...] }
+//   directory/{uid}          a person. Being here is what makes a hub member.
+//   keys/{uid}/p/{projectId} that person's key for one app's project
+//   activity/{id}            who changed which account, append-only
+//
+// EVERYTHING IS KEYED BY UID, never by address. Sign-up is on in this project
+// (a master makes logins from the browser), so anybody can make themselves a
+// login under any address nobody has taken. It gets them nothing: no
+// directory entry bears their uid, so they read nothing and hold no key.
+//
+// MASTERS ARE SET IN THE CONSOLE AND NOWHERE ELSE. config/access cannot be
+// written from any browser, a master's included, and there is no "if it does
+// not exist yet" door: the first one is made by hand (see the private SETUP).
+// A master may READ every key. That is what lets linking be run twice safely
+// and lets a login that was deleted and made again keep its apps - and it
+// means a master can sign in to any app as anyone. A master is a person you
+// would trust with everything, on a login nobody shares.
+//
+// A PERSON reads their own directory entry and their own keys, and only while
+// their entry is not disabled. They write nothing.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+
+    // One get() per request, cached within it, billed as one read.
+    function master() {
+      return signedIn()
+        && me() in get(/databases/$(database)/documents/config/access).data.get('masters', []);
+    }
+
+    function personPath(u) { return /databases/$(database)/documents/directory/$(u); }
+    function member() {
+      return signedIn()
+        && exists(personPath(me()))
+        && get(personPath(me())).data.get('disabled', false) != true;
+    }
+
+    // What a directory entry may hold. `links` is { projectId: { linked, role }
+    // or { plain } } and is only ever a copy for drawing tiles; an app's own
+    // lists are what its rules read. `rebindFrom` exists only while a login
+    // made again is taking over from the one it replaces.
+    function personOk(d) {
+      return d.keys().hasOnly(['email', 'name', 'links', 'disabled', 'createdAt', 'createdBy', 'rebindFrom'])
+        && d.email is string && d.email.size() > 2 && d.email.size() <= 254 && d.email == d.email.lower()
+        && d.name is string && d.name.size() <= 80
+        && d.get('disabled', false) is bool
+        && d.get('links', {}) is map
+        && d.get('createdAt', '') is string
+        && d.get('createdBy', '') is string
+        && d.get('rebindFrom', '') is string;
+    }
+
+    // What a key may hold. `next` is the key on its way in while one is being
+    // replaced; the app account answers to one or the other.
+    function secretOk(s) { return s is string && s.size() >= 32 && s.size() <= 128; }
+    function keyOk(d) {
+      return d.keys().hasOnly(['k', 'next', 'email', 'at', 'by'])
+        && secretOk(d.k)
+        && (!('next' in d) || secretOk(d.next))
+        && d.email is string && d.email == d.email.lower() && d.email.size() <= 254
+        && d.get('at', '') is string
+        && d.get('by', '') is string;
+    }
+
+    match /config/access {
+      allow get: if master();
+      allow list, write: if false;
+    }
+
+    match /directory/{u} {
+      allow get: if (signedIn() && me() == u) || master();
+      allow list, delete: if master();
+      allow create: if master() && personOk(request.resource.data);
+      // The address is what every app's lists hold: it never changes under a uid.
+      allow update: if master() && personOk(request.resource.data)
+        && request.resource.data.email == resource.data.email;
+    }
+
+    match /keys/{u}/p/{project} {
+      allow get: if (signedIn() && me() == u && member()) || master();
+      allow list, delete: if master();
+      allow create, update: if master() && keyOk(request.resource.data);
+    }
+
+    match /activity/{id} {
+      allow read: if master();
+      allow create: if master()
+        && request.resource.data.by == me()
+        && request.resource.data.at is string
+        && request.resource.data.text is string && request.resource.data.text.size() <= 500;
+      allow update, delete: if false;
+    }
+
+    // Everything else is closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
