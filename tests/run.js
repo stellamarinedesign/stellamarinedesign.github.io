@@ -405,6 +405,7 @@ export async function run() {
     ok(link.waiting && !link.linked, JSON.stringify(link));
     expect(link.role, 'floor');
     ok(w.hub.keys[p.uid][BOARD].k.length >= 32, 'the key it will be given is already saved');
+    ok(w.hub.log.some((e) => e.action === 'link' && e.text === `old@example.test links their existing ${PROJECTS[BOARD].title} login the first time they open it.`), 'the log says it waits for its owner');
   });
   await test('the owner links it on first open: their old password swapped for the saved key', async () => {
     const { w, hub, app, add, fill, again } = setup();
@@ -414,12 +415,24 @@ export async function run() {
     // What the core's link screen does, as the person: change the app password to their key.
     const key = w.hub.keys[p.uid][BOARD];
     await app(BOARD).changePassword('old@example.test', 'old-pw', key.k);
-    // The master's Accounts screen then proves it and calls it linked.
+    // The master's Accounts screen then proves it, calls it linked and logs it.
     p = await again(p);
-    expect(await L.ensureLink({ hub, app: app(BOARD), person: p, fill }), { status: 'linked', how: 'found' });
+    expect(await L.confirmClaim({ hub, app: app(BOARD), person: p, fill }), { status: 'linked', how: 'found' });
     const link = (await again(p)).links[BOARD];
     ok(link.linked && !link.waiting, JSON.stringify(link));
     expect(link.role, 'floor', 'the role survives the change');
+    expect(w.hub.log.filter((e) => e.text.includes('linked their own')).map((e) => e.text),
+      [`old@example.test linked their own ${PROJECTS[BOARD].title} login when they first opened it.`]);
+  });
+  await test('a claim the key does not bear out stays waiting, and nothing is logged as linked', async () => {
+    const { w, hub, app, add, fill, again } = setup();
+    addAppLogin(w, BOARD, 'old@example.test', 'old-pw');
+    let p = await add('old@example.test');
+    await L.giveRole({ hub, app: app(BOARD), model: board, person: p, role: 'floor', fill });
+    p = await again(p);
+    expect(await L.confirmClaim({ hub, app: app(BOARD), person: p, fill }), { status: 'legacy' });
+    ok((await again(p)).links[BOARD].waiting, 'still waiting');
+    ok(!w.hub.log.some((e) => e.text.includes('linked their own')), 'no claim logged');
   });
   await test('a person waiting to link is removed without a key being changed', async () => {
     const { w, hub, app, add, fill, again } = setup();

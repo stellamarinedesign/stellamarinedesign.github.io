@@ -70,7 +70,7 @@ async function catchUp({ backend, me, impl }, { people, grid }) {
   for (const c of claimedLinks(grid, self)) {
     const person = people.find((p) => p.uid === c.uid);
     try {
-      const r = await L.ensureLink({ hub, app: backend.app(c.pid), person });
+      const r = await L.confirmClaim({ hub, app: backend.app(c.pid), person });
       if (r.status === 'linked') { wrote = true; if (c.uid === me.uid) mine = true; }
     } catch (e) { console.warn('[hub] could not check a link its owner made:', c.pid, kindOf(e)); }
   }
@@ -138,7 +138,7 @@ function draw(view, ctx, { people, grid }) {
     while (r.status !== 'linked') {
       const answer = await linkHelpDialog({ person, col, status: r.status, key: r.key, error, self: person.uid === me.uid });
       if (!answer) return null;
-      if (answer.waiting) { await L.markWaiting({ hub, person, projectId: col.pid }); return 'waiting'; }
+      if (answer.waiting) { await L.markWaiting({ hub, person, projectId: col.pid, app }); return 'waiting'; }
       try {
         if (answer.password) r = await L.takeOver({ hub, app, person, currentPassword: answer.password });
         else {
@@ -178,7 +178,7 @@ function draw(view, ctx, { people, grid }) {
       }
       // Somebody else's login from before the hub: they link it themselves on first open.
       if (r.status === 'legacy' && person.uid !== me.uid) {
-        await L.markWaiting({ hub, person, projectId: col.pid, role: row.cells[col.pid]?.role ?? null });
+        await L.markWaiting({ hub, person, projectId: col.pid, role: row.cells[col.pid]?.role ?? null, app });
         return `${row.email} links their ${col.title} login the first time they open it.`;
       }
       const done = await finishLink(person, col, app, r);
@@ -255,16 +255,25 @@ function draw(view, ctx, { people, grid }) {
   };
 
   const loose = looseCount(grid);
-  if (!loose) onlyLoose = false;
-  const rows = onlyLoose ? grid.rows.filter((r) => Object.values(r.cells).some((c) => c.state === 'loose')) : grid.rows;
+  // Only people can be filtered to. Addresses the hub has no person for are in
+  // their own list under the grid, which is always shown; when they are all
+  // there is, the warning says so and offers no filter (it would empty the grid).
+  const looseRows = grid.rows.filter((r) => Object.values(r.cells).some((c) => c.state === 'loose'));
+  if (!looseRows.length) onlyLoose = false;
+  const rows = onlyLoose ? looseRows : grid.rows;
 
   view.textContent = '';
   view.append(head(() => act.add()));
   if (loose) {
+    const text = looseRows.length
+      ? (loose === 1 ? '1 address is on an app\'s list without a linked login.' : `${loose} addresses are on an app's list without a linked login.`)
+      : (loose === 1 ? '1 address is on an app\'s list but not in the hub. It is listed below.' : `${loose} addresses are on an app's list but not in the hub. They are listed below.`);
     view.append(el('div', { class: 'callout amber', role: 'status' },
       icon('bang', 18),
-      el('span', { class: 'callout-text' }, loose === 1 ? '1 address is on an app\'s list without a linked login.' : `${loose} addresses are on an app's list without a linked login.`),
-      el('button', { class: 'btn small', type: 'button', 'aria-pressed': String(onlyLoose), onclick: () => { onlyLoose = !onlyLoose; draw(view, ctx, { people, grid }); } }, onlyLoose ? 'Show everyone' : 'Show only these')));
+      el('span', { class: 'callout-text' }, text),
+      looseRows.length
+        ? el('button', { class: 'btn small', type: 'button', 'aria-pressed': String(onlyLoose), onclick: () => { onlyLoose = !onlyLoose; draw(view, ctx, { people, grid }); } }, onlyLoose ? 'Show everyone' : 'Show only these')
+        : null));
   }
 
   const table = el('table', { class: 'acct' },

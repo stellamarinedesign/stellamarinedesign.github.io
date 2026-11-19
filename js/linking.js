@@ -84,12 +84,27 @@ const noteLinked = (hub, person, pid) => hub.setLink(person.uid, pid, { linked: 
  * first open. Their key is already saved (ensureLink saves it before anything
  * else), so all the person's device has to do is swap the old password for it.
  */
-export async function markWaiting({ hub, person, projectId, role = undefined }) {
+export async function markWaiting({ hub, person, projectId, role = undefined, app = null }) {
   // Called once ensureLink has found the key does NOT open the login, so a
   // link noted as working is not any more: it waits for its owner too.
   const link = person.links?.[projectId];
+  const email = tidyEmail(person.email);
   await hub.setLink(person.uid, projectId, { waiting: true, role: role === undefined ? (link?.role ?? null) : role, ...stamp(hub) });
+  say(hub, 'link', `${email} links their existing ${nameOf(app ?? { projectId })} login the first time they open it.`, { target: email, project: projectId });
   return { status: 'waiting' };
+}
+
+/**
+ * A link its owner says they made on first open (their `self` record names
+ * the app): proved with one sign-in with the key before it is called linked.
+ * Logged here, by the master's screen, because the person's own device cannot
+ * write the log.
+ */
+export async function confirmClaim({ hub, app, person, fill }) {
+  const r = await ensureLink({ hub, app, person, fill });
+  const email = tidyEmail(person.email);
+  if (r.status === 'linked' && r.how === 'found') say(hub, 'link', `${email} linked their own ${nameOf(app)} login when they first opened it.`, { target: email, project: app.projectId });
+  return r;
 }
 
 /**
@@ -234,7 +249,7 @@ export async function giveRole({ hub, app, model, person, role, fill }) {
     const pid = app.projectId;
     const r = await ensureLink({ hub, app, person: p, fill });
     if (r.status === 'legacy') {
-      await markWaiting({ hub, person: p, projectId: pid });
+      await markWaiting({ hub, person: p, projectId: pid, app });
       p = { ...p, links: { ...p.links, [pid]: { ...p.links?.[pid], linked: undefined, waiting: true } } };
       return { ...(await setRole({ hub, app, model, person: p, role })), waiting: true };
     }
