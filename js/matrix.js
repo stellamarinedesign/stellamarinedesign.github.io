@@ -10,8 +10,11 @@
 // A cell's state:
 //   ok       linked, and on one of the app's lists
 //   linked   linked, on no list (can sign in there, sees nothing)
-//   loose    on a list, NOT linked: an old login the hub has not taken over,
-//            or an address with no login at all, which anyone could sign up as
+//   waiting  assigned to them; they have a login there from before the hub
+//            and link it themselves the first time they open the app
+//   loose    on a list, NOT linked and not waiting: an old login nobody has
+//            dealt with, or an address with no login at all, which anyone
+//            could sign up as
 //   none     nothing
 //   on, off  the tile tick of an app that has not joined
 
@@ -58,15 +61,17 @@ export function buildGrid({ projects, joined, people, access, me }) {
         const link = person.links?.[c.pid] ?? null;
         if (c.kind === 'plain') { cells[c.pid] = { state: link?.plain ? 'on' : 'off' }; continue; }
         const linked = Boolean(link?.linked);
+        const waiting = !linked && Boolean(link?.waiting);
         // A tile tick from before the app joined, still standing because the person is not linked yet.
-        const plain = !linked && Boolean(link?.plain);
-        if (c.kind === 'fixed') { cells[c.pid] = { state: linked ? 'ok' : 'none', linked, role: null, plain, canLink: !linked }; continue; }
+        const plain = !linked && !waiting && Boolean(link?.plain);
+        if (c.kind === 'fixed') { cells[c.pid] = { state: linked ? 'ok' : waiting ? 'waiting' : 'none', linked, waiting, role: null, plain, canLink: !linked && !waiting }; continue; }
         const doc = access?.[c.pid]?.doc ?? null;
         const role = doc ? roleOf(projects[c.pid].access, doc, email) : (link?.role ?? null);
-        const state = role ? (linked ? 'ok' : 'loose') : (linked ? 'linked' : 'none');
+        const state = waiting ? 'waiting' : role ? (linked ? 'ok' : 'loose') : (linked ? 'linked' : 'none');
         cells[c.pid] = {
           state,
           linked,
+          waiting,
           role,
           plain,
           // Where a Link button belongs. On a listed address with no link
@@ -77,7 +82,7 @@ export function buildGrid({ projects, joined, people, access, me }) {
           canLink: !linked && (state === 'loose' || (self && c.problem === 'not-linked')),
           master: doc ? isMaster(projects[c.pid].access, doc, email) : false,
           // The hub's copy is behind the app's list: the view quietly corrects it.
-          stale: Boolean(doc) && linked && (link.role ?? null) !== role,
+          stale: Boolean(doc) && (linked || waiting) && (link.role ?? null) !== role,
         };
       }
       return { uid: person.uid, email, name: person.name || '', disabled: Boolean(person.disabled), self, cells };
@@ -97,6 +102,38 @@ export function buildGrid({ projects, joined, people, access, me }) {
   }
 
   return { columns, rows, strays: [...strays.values()].sort((a, b) => a.email.localeCompare(b.email)) };
+}
+
+/**
+ * The hub's copies of roles that the apps' own lists say otherwise: one entry
+ * per linked person and app, for the screen to write back. The app's list is
+ * the truth (its rules read it); the hub's copy only draws tiles and the
+ * switcher. Without this, a role given inside the app, or held before the
+ * person was linked, would never reach their tile. Removed people are left
+ * alone. Each entry: { uid, pid, role } (role null: on none of its lists).
+ */
+export function staleLinks(grid) {
+  const out = [];
+  for (const r of grid.rows) {
+    if (r.disabled) continue;
+    for (const [pid, c] of Object.entries(r.cells)) if (c.stale) out.push({ uid: r.uid, pid, role: c.role ?? null });
+  }
+  return out;
+}
+
+/**
+ * Links still waiting for their owner that the owner says are done: their
+ * own record (`self/{uid}.linked`) names the app. The screen proves each one
+ * (one sign-in with the key) before calling it linked. `self` is
+ * { uid: { linked: { pid: iso } } }.
+ */
+export function claimedLinks(grid, self = {}) {
+  const out = [];
+  for (const r of grid.rows) {
+    if (r.disabled) continue;
+    for (const [pid, c] of Object.entries(r.cells)) if (c.waiting && self[r.uid]?.linked?.[pid]) out.push({ uid: r.uid, pid });
+  }
+  return out;
 }
 
 /** How many cells are `loose`, people and strays together: the number the screen warns with. */

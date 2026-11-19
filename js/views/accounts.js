@@ -17,7 +17,7 @@
 import { el, icon, menu, copyText, withReveal } from '../ui.js';
 import { openDialog, confirmDialog, promptDialog } from '../dialog.js';
 import { PROJECTS, HUB_NAME } from '../registry.js';
-import { buildGrid, looseCount } from '../matrix.js';
+import { buildGrid, looseCount, staleLinks, claimedLinks } from '../matrix.js';
 import * as L from '../linking.js';
 import { friendly, kindOf, HubError } from '../errors.js';
 import { isEmail, tidyEmail } from '../keys.js';
@@ -49,6 +49,35 @@ async function load({ backend, me }) {
   return { people, joined, grid: buildGrid({ projects: PROJECTS, joined, people, access, me }) };
 }
 
+/** Write back the hub's copies of roles that the apps' lists say otherwise. Returns true if any was written. */
+async function catchUp({ backend, me, impl }, { people, grid }) {
+  const { hub } = backend;
+  let wrote = false;
+  let mine = false;
+  for (const s of staleLinks(grid)) {
+    const link = people.find((p) => p.uid === s.uid)?.links?.[s.pid];
+    if (!link?.linked) continue;
+    try {
+      await hub.setLink(s.uid, s.pid, { ...link, role: s.role, at: hub.now(), by: hub.me().uid });
+      wrote = true;
+      if (s.uid === me.uid) mine = true;
+    } catch (e) { console.warn('[hub] role copy not brought up to date:', s.pid, kindOf(e)); }
+  }
+  // Links their owners say they have made, on first open: proved with one
+  // sign-in with the key, and only then called linked.
+  let self = {};
+  try { self = await hub.listSelf(); } catch { self = {}; }
+  for (const c of claimedLinks(grid, self)) {
+    const person = people.find((p) => p.uid === c.uid);
+    try {
+      const r = await L.ensureLink({ hub, app: backend.app(c.pid), person });
+      if (r.status === 'linked') { wrote = true; if (c.uid === me.uid) mine = true; }
+    } catch (e) { console.warn('[hub] could not check a link its owner made:', c.pid, kindOf(e)); }
+  }
+  if (mine) { try { await impl.refresh(); } catch { /* the note catches up at the next sign-in */ } }
+  return wrote;
+}
+
 export async function render(view, ctx) {
   if (!view.querySelector('.grid-wrap')) {
     view.textContent = '';
@@ -56,8 +85,12 @@ export async function render(view, ctx) {
       el('div', { class: 'skel' }), el('div', { class: 'skel' }), el('div', { class: 'skel' }), el('div', { class: 'skel' })));
   }
   let data;
-  try { data = await load(ctx); }
-  catch (e) {
+  try {
+    data = await load(ctx);
+    // The hub's copy of a role catches up with the app's own list, quietly:
+    // it is a copy for drawing tiles, not a change anybody made.
+    if (await catchUp(ctx, data)) data = await load(ctx);
+  } catch (e) {
     view.textContent = '';
     view.append(el('div', { class: 'state-msg', role: 'alert' },
       el('h1', { class: 'h1' }, 'Accounts did not load'),
@@ -94,13 +127,18 @@ function draw(view, ctx, { people, grid }) {
     await render(view, ctx);
   }
 
-  /** A link that needs a person: an old login to take over, or a project that makes no logins from here. */
+  /**
+   * A link that needs a person: an old login to take over now, or a project
+   * that makes no logins from here. Resolves 'linked', 'waiting' (left for
+   * its owner to link on first open) or null (cancelled).
+   */
   async function finishLink(person, col, app, first) {
     let r = first;
     let error = '';
     while (r.status !== 'linked') {
-      const answer = await linkHelpDialog({ person, col, status: r.status, key: r.key, error });
-      if (!answer) return false;
+      const answer = await linkHelpDialog({ person, col, status: r.status, key: r.key, error, self: person.uid === me.uid });
+      if (!answer) return null;
+      if (answer.waiting) { await L.markWaiting({ hub, person, projectId: col.pid }); return 'waiting'; }
       try {
         if (answer.password) r = await L.takeOver({ hub, app, person, currentPassword: answer.password });
         else {
@@ -110,7 +148,7 @@ function draw(view, ctx, { people, grid }) {
       } catch (e) { error = kindOf(e) === 'credential' ? 'That is not its password.' : friendly(e); }
     }
     if (person.uid === me.uid) await ctx.impl.refresh();
-    return true;
+    return 'linked';
   }
 
   const act = {
@@ -119,20 +157,39 @@ function draw(view, ctx, { people, grid }) {
       const app = backend.app(col.pid);
       const model = PROJECTS[col.pid].access;
       const r = await L.giveRole({ hub, app, model, person, role });
+      let waiting = Boolean(r.waiting);
       if (r.status === 'legacy' || r.status === 'console') {
-        if (!await finishLink(person, col, app, r)) return null;
+        const done = await finishLink(person, col, app, r);
+        if (!done) return null;
+        waiting = done === 'waiting';
         await L.setRole({ hub, app, model, person: await hub.getPerson(person.uid), role });
       }
       const label = col.roles.find((x) => x.id === role)?.label;
-      return role ? `${row.email} is now ${label} in ${col.title}.` : `${row.email} has no role in ${col.title} now.`;
+      if (!role) return `${row.email} has no role in ${col.title} now.`;
+      return waiting ? `${row.email} is now ${label} in ${col.title}, and links their login the first time they open it.` : `${row.email} is now ${label} in ${col.title}.`;
     }),
     link: (row, col) => run(async () => {
       const person = personOf(row.uid);
       const app = backend.app(col.pid);
       const r = await L.ensureLink({ hub, app, person });
-      if (r.status !== 'linked' && !await finishLink(person, col, app, r)) return null;
-      if (person.uid === me.uid) await ctx.impl.refresh();
-      return `${row.email} is linked to ${col.title}.`;
+      if (r.status === 'linked') {
+        if (person.uid === me.uid) await ctx.impl.refresh();
+        return `${row.email} is linked to ${col.title}.`;
+      }
+      // Somebody else's login from before the hub: they link it themselves on first open.
+      if (r.status === 'legacy' && person.uid !== me.uid) {
+        await L.markWaiting({ hub, person, projectId: col.pid, role: row.cells[col.pid]?.role ?? null });
+        return `${row.email} links their ${col.title} login the first time they open it.`;
+      }
+      const done = await finishLink(person, col, app, r);
+      if (!done) return null;
+      return done === 'waiting' ? `${row.email} links their ${col.title} login the first time they open it.` : `${row.email} is linked to ${col.title}.`;
+    }),
+    // Do now what the person would do on first open: type their login's password (theirs to give).
+    takeOver: (row, col) => run(async () => {
+      const person = personOf(row.uid);
+      const done = await finishLink(person, col, backend.app(col.pid), { status: 'legacy' });
+      return done === 'linked' ? `${row.email} is linked to ${col.title}.` : null;
     }),
     tile: (row, col, on) => run(async () => {
       await L.setPlain({ hub, person: personOf(row.uid), projectId: col.pid, on });
@@ -315,7 +372,20 @@ function cellNode(row, col, cell, act) {
       { label: 'Hand back', danger: true, onSelect: () => act.handBack(row, col) },
     ], { label }));
     out.append(more);
-  } else if (!row.disabled && cell.canLink) {
+  } else if (cell.waiting && !row.self && !row.disabled) {
+    // Assigned; its owner links their old login the first time they open the app.
+    const label = `${who}'s ${col.title} login`;
+    const chip = el('button', {
+      class: 'chip outline chip-btn', type: 'button', title: `${who} links it the first time they open ${col.title}`,
+      'aria-label': `Waiting for ${who} to link it. ${label}`, 'aria-haspopup': 'menu', 'aria-expanded': 'false',
+    }, 'Waiting', icon('more', 14));
+    chip.addEventListener('click', () => menu(chip, [
+      { heading: col.title },
+      { label: 'Check link', icon: 'link', onSelect: () => act.link(row, col) },
+      { label: 'Take over now', icon: 'key', onSelect: () => act.takeOver(row, col) },
+    ], { label }));
+    out.append(chip);
+  } else if (!row.disabled && (cell.canLink || (cell.waiting && row.self))) {
     // Amber where it wants doing: an address on the app's list with no link
     // behind it, or the master's own cell in an app they must link themselves
     // to before its column can be read at all (js/matrix.js).
@@ -412,7 +482,7 @@ function addPersonDialog({ hub, email = '' }) {
  * logins from a browser. Resolves { password } to take a login over,
  * { added: true } once the user has been added in the console, or null.
  */
-function linkHelpDialog({ person, col, status, key, error }) {
+function linkHelpDialog({ person, col, status, key, error, self = false }) {
   return openDialog((box, close, guard) => {
     const pass = el('input', { class: 'input', id: 'lhPass', type: 'password', autocomplete: 'off' });
     const err = el('div', { class: 'form-err', id: 'lhErr', role: 'alert' }, error);
@@ -445,6 +515,10 @@ function linkHelpDialog({ person, col, status, key, error }) {
       el('p', { class: 'lede' }, `If it has none, add the user in ${col.title}'s Firebase console (Authentication, Add user) with this password, then press Added.`),
       el('div', { class: 'fresh' }, el('span', { class: 'cap' }, 'Password to add it with'), el('div', { class: 'fresh-line' }, el('code', {}, key), copy)),
       err,
-      el('div', { class: 'actions' }, el('button', { class: 'btn', type: 'button', onclick: () => close({ added: true }) }, 'Added'), cancel));
+      el('div', { class: 'actions' },
+        el('button', { class: 'btn', type: 'button', onclick: () => close({ added: true }) }, 'Added'),
+        // An existing login there, whose password its owner knows: they link it on first open.
+        self ? null : el('button', { class: 'btn', type: 'button', onclick: () => close({ waiting: true }) }, 'They link it themselves'),
+        cancel));
   }, { label: `Link ${person.email} to ${col.title}`, wide: status !== 'legacy', guard: true });
 }

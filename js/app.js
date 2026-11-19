@@ -24,6 +24,7 @@ const state = { me: null, backend: null, impl: null };
 
 const VIEWS = {
   '': { module: './views/launcher.js', tab: '#/' },
+  edit: { module: './views/launcher.js', tab: '#/' },          // arranging your own tiles
   accounts: { module: './views/accounts.js', tab: '#/accounts', master: true },
   log: { module: './views/account-log.js', tab: '#/log', master: true },
 };
@@ -68,6 +69,7 @@ function drawChrome(current) {
       menu(cog, [
         { heading: state.me.email },
         { label: 'Password', icon: 'key', onSelect: () => Hub.openPassword() },
+        { label: 'Edit tiles', icon: 'app', onSelect: () => { location.hash = '#/edit'; } },
         'sep',
         { label: 'Dark', checked: !light, onSelect: () => setTheme('stella') },
         { label: 'Light', checked: light, onSelect: () => setTheme('workshop') },

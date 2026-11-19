@@ -54,7 +54,7 @@ in the registry; see `js/cards.js`.
 | `core/v1/hub-impl.js` | fetched by `hub.js` when needed: the hub's sign-in and what it draws inside other apps |
 | `core/next/` | a trial copy of the core, for one device at a time (`tools/channel.py`) |
 | `js/registry.js` | the apps the hub knows, and the hub's name |
-| `js/linking.js`, `js/access.js`, `js/matrix.js`, `js/keys.js`, `js/errors.js` | the logic, with no Firebase in it |
+| `js/linking.js`, `js/access.js`, `js/matrix.js`, `js/tiles.js`, `js/keys.js`, `js/errors.js` | the logic, with no Firebase in it |
 | `js/backend.js`, `js/firebase.js` | that logic's two ports, over Firebase |
 | `js/fake.js` | the same ports held in memory: the tests and the demo |
 | `firestore.rules` | the hub project's rules |

@@ -845,6 +845,21 @@ One app, and what is waiting in it.
   touch each link gets 13px above and below, which makes it 44px tall.
 - **Phone:** padding drops to 12px by 16px.
 
+### Arranging your own tiles (#/edit)
+
+Reached from the cog (Edit tiles). The same grid of tiles, drawn without their faces or doors.
+
+- **Bar** above the tiles: a two-way segmented choice, **All my devices** / **This device
+  only** (a Band track with a 1px Strong Rule edge; the pressed half is Shadow Grey with an
+  inset Strong Rule line and White text; 32px tall, 44px on touch); **Use my usual tiles here**
+  as a small button when this device has its own arrangement; and **Done**, the one primary
+  button, at the right.
+- **Each tile:** its head (icon, name), then a row under a Rule Grey line: move earlier and
+  move later as icon buttons (chevrons, disabled at the ends), and **Hide** / **Show** as a
+  small button at the right.
+- **A hidden tile** stays in place with its head at 55% and an outline **Hidden** chip.
+- Focus follows the moved tile: after a move, the same button on the same tile has focus.
+
 ### Skeleton
 
 A card still on its way is drawn as flat blocks exactly the size of the lines they stand for.
@@ -876,7 +891,8 @@ carefully, at a desk.
   widths a long address ends in an ellipsis. On a phone it wraps and is never cut, because the
   address is what every confirm, toast and log line names a login by.
 - **A cell** holds a role select, and one control for the link beside it: three dots where a
-  role already says the person is there, or the "Linked" chip-button where there is no role to
+  role already says the person is there, the "Waiting" chip-button where they still have to
+  link their old login on first open (its menu: Check link, Take over now), or the "Linked" chip-button where there is no role to
   sit beside. Where a link wants doing the cell shows a small amber Link button (a plain small
   one for an app whose roles are fixed). An app that has not joined shows a "Tile" tick box
   instead.
@@ -957,6 +973,12 @@ core's copy). The core reads the host page's theme each time it draws and wears 
 - **No-access cards:** the same ground and column with centred text: the mark, a heading in
   headline type, one sentence in Ash, and one or two buttons side by side that share the width.
   The way on is the primary button, and Sign out is secondary.
+- **Link your <app> login:** the sign-in screen's ground and column. The mark, then a centred
+  head (the heading in headline type, one sentence in Ash), then one password field labelled
+  "<App> password" with its Show button, the error line, a full-width primary **Link**, and a
+  quiet "I don't know it" text button. That swaps the field for a sentence and two buttons
+  (Back, Sign out). Shown when an app refuses the person's key: their login there is from
+  before the hub, or a reset email changed it.
 - **Change-password dialog:** the hub's dialog box, drawn by the core: at most 440px wide, with
   the same padding, corners and shadow. It holds three password fields each with its Show
   button, a hint under the new password, the error line, then the primary button and Cancel.

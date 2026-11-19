@@ -235,6 +235,17 @@ export async function coreTests({ test, expect, ok, setGroup }) {
     expect(app.signIns.length, 1, 'one try per key');
     expect(impl.cards[0].kind, 'broken');
   });
+  await test('the app refuses the key: the person links their old login themselves, and is in', async () => {
+    const impl = fakeImpl({ user: ANN, keys: { [P]: { k: 'the-key', email: 'ann@example.test' } } });
+    const app = fakeAppAuth({ accounts: { 'ann@example.test': 'her-old-password' } });
+    // What the impl's link screen does once she has typed her old password: the account takes the key.
+    impl.linkScreen = async (info) => { impl.calls.push(`link:${info.project}`); app.accounts['ann@example.test'] = 'the-key'; return true; };
+    const env = setupEnv({ note: userNote(), impl });
+    expect((await connect(makeHub(env), app)).state, 'in');
+    ok(impl.calls.includes(`link:${P}`), 'the link screen was shown');
+    expect(app.signIns.map((s) => s.password), ['the-key', 'the-key'], 'refused once, then in with the same key');
+    expect(impl.cards, [], 'no card');
+  });
   await test('a key being replaced: the old one is refused, the new one works', async () => {
     const impl = fakeImpl({ user: ANN, keys: { [P]: { k: 'old-key', next: 'new-key', email: 'ann@example.test' } } });
     const env = setupEnv({ note: userNote(), impl });

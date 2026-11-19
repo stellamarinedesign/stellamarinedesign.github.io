@@ -39,10 +39,11 @@
 //   legacy       the app is signed in and this device has never met the hub:
 //                carry on exactly as before (pass `strict: true` to end this)
 //   none         signed in to the hub, but this login has no access to the app
-//   broken       it has a key and the app refused it: a master has to repair it
+//   broken       it has a key, the app refused it, and the person's own fix
+//                (typing their old password for the app once) did not take
 //   unreachable  the hub could not be reached; `legacy` was called if given
 
-const BUILD = '2026-11-17.1';
+const BUILD = '2026-11-19.1';
 const CHANNEL = 'next';
 const NOTE = 'stella.hub.session';
 const CHANNEL_KEY = 'stella.hub.channel';
@@ -207,7 +208,14 @@ export function makeHub(env) {
     try { user = await i.session(); } catch { return unreachable(i); }
     if (!user) user = await i.signInScreen({ title });       // stays up until a hub member has signed in
 
-    const state = await bridge(i, user, project, opts);
+    let state = await bridge(i, user, project, opts);
+    // The key was refused: their login in the app is still the one from
+    // before the hub, or a reset email changed it. They put it right
+    // themselves, once (the impl asks for that password and swaps it for the
+    // key), and the key is tried again.
+    if (state === 'broken' && typeof i.linkScreen === 'function') {
+      if (await i.linkScreen({ title, project, user })) state = await bridge(i, user, project, opts);
+    }
     if (state === 'unreachable') return unreachable(i);
     if (state === 'in') i.closeScreens();
     else i.card(state, { title, user });

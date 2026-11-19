@@ -42,6 +42,11 @@
 //
 // A person:  { uid, email, name, links: { [pid]: link }, disabled?, createdAt, createdBy }
 // A link:    { linked: true, role: string|null, at, by }   an app that has joined
+//            { waiting: true, role: string|null, at, by }  assigned; the person has
+//                                    a login there from before the hub, and links it
+//                                    THEMSELVES the first time they open the app (the
+//                                    shared core asks for its password once and swaps
+//                                    it for the key the hub saved here)
 //            { plain: true, at, by }                       a tile for one that has not
 
 import { newKey, tempPassword, tidyEmail, isEmail } from './keys.js';
@@ -73,6 +78,19 @@ async function keyFor(hub, person, pid, fill) {
 }
 
 const noteLinked = (hub, person, pid) => hub.setLink(person.uid, pid, { linked: true, role: person.links?.[pid]?.role ?? null, ...stamp(hub) });
+
+/**
+ * The app is this person's, and they link their existing login themselves on
+ * first open. Their key is already saved (ensureLink saves it before anything
+ * else), so all the person's device has to do is swap the old password for it.
+ */
+export async function markWaiting({ hub, person, projectId, role = undefined }) {
+  // Called once ensureLink has found the key does NOT open the login, so a
+  // link noted as working is not any more: it waits for its owner too.
+  const link = person.links?.[projectId];
+  await hub.setLink(person.uid, projectId, { waiting: true, role: role === undefined ? (link?.role ?? null) : role, ...stamp(hub) });
+  return { status: 'waiting' };
+}
 
 /**
  * Make sure this person has an account in the app's project whose password is
@@ -182,20 +200,26 @@ export async function setRole({ hub, app, model, person, role }) {
   const email = tidyEmail(person.email);
   if (email === tidyEmail(hub.me().email)) throw new HubError('self', 'Your own role is changed by another master.');
   const link = person.links?.[pid];
-  if (role !== null && !link?.linked) throw new HubError('not-linked', 'Link this login to the app before giving it a role there.');
+  // Listed only behind a login: one the hub holds, or one that exists and its
+  // owner will link (waiting). Never an address with no login at all.
+  if (role !== null && !link?.linked && !link?.waiting) throw new HubError('not-linked', 'Link this login to the app before giving it a role there.');
   const doc = await app.readAccess();
   if (!doc) throw new HubError('missing', 'That app has no accounts list yet. Set it up in the app first.');
   const ops = [...pinOps(model, doc), ...roleOps(model, doc, email, role)];
   if (ops.length) await app.listOps(ops);
-  if (link?.linked) await hub.setLink(person.uid, pid, { ...link, role, ...stamp(hub) });
+  if (link?.linked || link?.waiting) await hub.setLink(person.uid, pid, { ...link, role, ...stamp(hub) });
   if (ops.length) say(hub, 'role', role ? `${email} is now ${roleLabel(model, role)} in ${nameOf(app)}.` : `${email} has no role in ${nameOf(app)} now.`, { target: email, project: pid });
   return { status: 'saved', changed: ops.length > 0 };
 }
 
 /**
- * Prove the link, then give the role. Returns ensureLink's answer untouched
- * when the link needs a person's help (`legacy`, `console`), and the caller
- * comes back after takeOver.
+ * Prove the link, then give the role.
+ *
+ * An existing login the hub does not hold (`legacy`) no longer stops the
+ * role: the app becomes the person's, WAITING, and they link it themselves on
+ * first open. That is safe to list, because the login exists, so nobody can
+ * sign up as the address. A project that makes no logins from a browser
+ * (`console`) still comes back to the caller.
  *
  * The link is PROVED every time a role is given, never read off the hub's own
  * note of it: the app account may have been deleted, or given another password
@@ -209,8 +233,13 @@ export async function giveRole({ hub, app, model, person, role, fill }) {
   if (role !== null) {
     const pid = app.projectId;
     const r = await ensureLink({ hub, app, person: p, fill });
+    if (r.status === 'legacy') {
+      await markWaiting({ hub, person: p, projectId: pid });
+      p = { ...p, links: { ...p.links, [pid]: { ...p.links?.[pid], linked: undefined, waiting: true } } };
+      return { ...(await setRole({ hub, app, model, person: p, role })), waiting: true };
+    }
     if (r.status !== 'linked') return r;
-    p = { ...p, links: { ...p.links, [pid]: { ...p.links?.[pid], linked: true, role: p.links?.[pid]?.role ?? null } } };
+    p = { ...p, links: { ...p.links, [pid]: { ...p.links?.[pid], waiting: undefined, linked: true, role: p.links?.[pid]?.role ?? null } } };
   }
   return setRole({ hub, app, model, person: p, role });
 }
@@ -286,8 +315,11 @@ export async function removePerson({ hub, person, apps, fill }) {
         await hub.setLink(person.uid, pid, { ...link, role: null, ...stamp(hub) });
       } catch (e) { failed = kindOf(e); }
     }
-    try { await rotateLink({ hub, app: a.app, person, fill }); }
-    catch (e) { failed = failed ?? kindOf(e); }
+    // A login still waiting for its owner was never given the key: nothing to replace.
+    if (link.linked) {
+      try { await rotateLink({ hub, app: a.app, person, fill }); }
+      catch (e) { failed = failed ?? kindOf(e); }
+    }
     results[pid] = failed ?? 'ok';
   }
   await hub.patchPerson(person.uid, { disabled: true });

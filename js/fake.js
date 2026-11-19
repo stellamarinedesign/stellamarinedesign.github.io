@@ -31,7 +31,7 @@ export function makeWorld() {
   return {
     seq: 0,
     now: '2026-11-16T00:00:00.000Z',
-    hub: { users: {}, people: {}, keys: {}, masters: [], log: [], session: null },
+    hub: { users: {}, people: {}, keys: {}, self: {}, masters: [], log: [], session: null },
     apps: {},
     joined: {},
     traps: [],
@@ -131,6 +131,16 @@ export function fakeHub(world, { as, onChange = null } = {}) {
     },
     log: async (entry) => { need(master()); h.log.unshift(clone(entry)); },
     listLog: async (n = 50) => { need(master()); return clone(h.log.slice(0, n)); },
+    // A person's own record (tiles, apps they linked themselves): theirs to write, a master's to read.
+    getSelf: async (uid) => { need(master() || (uid === as && member(as))); return clone((h.self ??= {})[uid] ?? null); },
+    setSelf: async (uid, patch) => {
+      need(uid === as && member(as));
+      const next = { ...((h.self ??= {})[uid] ?? {}), ...clone(patch) };
+      if (Object.keys(next).some((k) => !['tiles', 'linked', 'at'].includes(k))) throw fb('permission-denied');
+      if (next.tiles && Object.keys(next.tiles).some((k) => !['order', 'hidden'].includes(k))) throw fb('permission-denied');
+      h.self[uid] = next;
+    },
+    listSelf: async () => { need(master()); return clone(h.self ??= {}); },
   }, onChange);
 }
 
@@ -227,7 +237,7 @@ export function demoWorld() {
   };
 
   const alex = person('Alex Morgan', 'alex@example.test', { [BOARD]: 'manager', [ORDERING]: 'manager', [DESIGN]: 'lead', [DRAWINGS]: 'linked', [ORDERING_TEST]: 'plain' });
-  person('Sam Lee', 'sam@example.test', { [BOARD]: 'manager', [ORDERING]: 'manager' });
+  const sam = person('Sam Lee', 'sam@example.test', { [BOARD]: 'manager', [ORDERING]: 'manager' });
   person('Riley Chen', 'riley@example.test', { [DESIGN]: 'designer', [BOARD]: 'engineer', [DRAWINGS]: 'linked' });
   person('Workshop floor', 'workshop@example.test', { [BOARD]: 'floor', [ORDERING]: 'floor', [DRAWINGS]: 'linked' });
   person('Jordan Park', 'jordan@example.test', {});
@@ -241,6 +251,14 @@ export function demoWorld() {
   // And one the hub has never heard of, with an old login.
   w.apps[DESIGN].access.contributors.push('casey@example.test');
   addAppLogin(w, DESIGN, 'casey@example.test', 'old-password');
+
+  // Sam has a design scheduling login from before the hub: given Designer, and
+  // WAITING to link it himself the first time he opens it (its password is
+  // old-password; the key it becomes is already saved).
+  addAppLogin(w, DESIGN, 'sam@example.test', 'old-password');
+  (w.hub.keys[sam] ??= {})[DESIGN] = { k: newKey(), email: 'sam@example.test', at: w.now, by: 'setup' };
+  w.hub.people[sam].links[DESIGN] = { waiting: true, role: 'designer', at: w.now, by: 'setup' };
+  w.apps[DESIGN].access.designers.push('sam@example.test');
 
   for (const pid of [BOARD, ORDERING, DESIGN]) w.apps[pid].access.masters = ['alex@example.test'];
   w.hub.masters = [alex];
@@ -316,6 +334,20 @@ export function demoProvider() {
     readKey: async (uid, pid) => {
       if (uid !== h.session || !h.people[uid] || h.people[uid].disabled) throw fb('permission-denied');
       return clone(h.keys[uid]?.[pid] ?? null);
+    },
+    // Link your existing login: the password typed, swapped for the key, in that app.
+    swapPassword: async ({ project, email, current, next }) => {
+      const u = w.apps[project]?.users[tidyEmail(email)];
+      if (!u || u.password !== current) throw fb('auth/invalid-credential');
+      u.password = next;
+      w.apps[project].drops += 1;
+      saveDemo();
+    },
+    markLinked: async (uid, project) => {
+      if (uid !== h.session) throw fb('permission-denied');
+      const me = ((h.self ??= {})[uid] ??= {});
+      (me.linked ??= {})[project] = new Date().toISOString();
+      saveDemo();
     },
   };
 }

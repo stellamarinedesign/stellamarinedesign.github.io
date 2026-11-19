@@ -264,7 +264,8 @@ export function appsFromLinks(links, projects = PROJECTS, joined = null) {
     if (!p || !link) continue;
     if (link.plain) { out[pid] = 'link'; continue; }
     const isJoined = joined ? Boolean(joined[pid]) : Boolean(p.joined);
-    if (!isJoined || !link.linked) continue;
+    // WAITING counts: the app is theirs, and opening it is how they link it.
+    if (!isJoined || !(link.linked || link.waiting)) continue;
     if (p.access?.fixed) out[pid] = 'link';
     else if (link.role) out[pid] = link.role;
   }

@@ -169,7 +169,14 @@ try {
   await shot('dialog-add', { full: false });
   await js(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));`);
   await until(`!document.querySelector('.overlay.show')`);
+  // Link on somebody's old login: it waits for them to link it on first open.
   await js(`[...${row('pat@example.test')}.querySelectorAll('button')].find((b) => b.textContent === 'Link').click();`);
+  await until(`${row('pat@example.test')}?.querySelector('.chip-btn[aria-label^="Waiting"]')`, 'Pat waiting');
+  await shot('accounts-pat-waiting', { full: false });
+  // ...and the master can still take it over now, from that cell's menu.
+  await js(`${row('pat@example.test')}.querySelector('.chip-btn[aria-label^="Waiting"]').click();`);
+  await until(`document.querySelector('.menu')`);
+  await click('.menu .menu-item', 'Take over now');
   await until(`document.querySelector('.overlay.show #lhPass')`);
   await shot('dialog-takeover', { full: false });
   await js(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));`);
@@ -273,6 +280,56 @@ try {
   await until(`document.querySelector('.shub-screen #shub-email')`, 'the sign-in screen on an iPad');
   await shot('signin-ipad', { full: false });
   await send('Emulation.setTouchEmulationEnabled', { enabled: false });
+
+  // ---- arranging your own tiles: edit mode, a tile hidden and one moved
+  await send('Emulation.setTouchEmulationEnabled', { enabled: false });
+  await size(1440, 900);
+  await js(`localStorage.removeItem('stella.hub.demo.v1'); localStorage.removeItem('stella.hub.session');`);
+  await go('/');
+  await until(settled, 'the front page, demo started again');
+  await go('/#/edit');
+  await until(`document.querySelector('.tiles.editing .tile')`, 'edit mode');
+  await click('.tiles.editing .tile .btn.small', 'Hide');
+  await until(`document.querySelector('.tile.is-hidden')`, 'a hidden tile');
+  await js(`document.querySelectorAll('.tiles.editing .tile')[2].querySelector('[aria-label^="Move"][aria-label$="earlier"]').click();`);
+  await shot('edit-tiles', { full: false });
+  await size(390, 844, true);
+  await go('/#/edit');
+  await until(`document.querySelector('.tiles.editing .tile')`, 'edit mode on a phone');
+  await shot('edit-tiles-mobile');
+  await size(1440, 900);
+  await go('/');
+  await until(settled, 'the front page after editing');
+  await shot('desktop-arranged', { full: false });
+
+  // ---- linking an old login on first open: Sam, waiting for design scheduling
+  await go('/#/accounts');
+  await until(settled, 'accounts');
+  await shot('accounts-waiting', { full: false });
+  await go('/');
+  await until(settled, 'the front page');
+  await js(`const s = document.getElementById('viewAs'); s.value = [...s.options].find((o) => o.textContent === 'Sam Lee').value; s.dispatchEvent(new Event('change', { bubbles: true }));`);
+  await sleep(1500);
+  await until(`document.getElementById('who')?.textContent === 'Sam Lee' && ${settled}`, 'the page as Sam');
+  await go('/lab/app.html?app=stella-design-scheduling');
+  await until(`document.querySelector('.shub-screen #shub-link-pass')`, 'the link screen');
+  await shot('link-screen', { full: false });
+  await js(`const s = document.querySelector('.shub-screen'); s.querySelector('#shub-link-pass').value = 'wrong-guess'; s.querySelector('form').requestSubmit();`);
+  await until(`document.querySelector('#shub-link-err').textContent`, 'the wrong-password line');
+  await shot('link-screen-error', { full: false });
+  await js(`const s = document.querySelector('.shub-screen'); s.querySelector('#shub-link-pass').value = 'old-password'; s.querySelector('form').requestSubmit();`);
+  await until(`!document.querySelector('.shub-screen') && document.querySelector('#view .page-head')`, 'signed in after linking');
+  await shot('link-done', { full: false });
+  await size(390, 844, true);
+  await js(`localStorage.removeItem('stella.hub.demo.v1'); localStorage.removeItem('stella.hub.session'); localStorage.removeItem('lab.session.stella-design-scheduling');`);
+  await go('/');
+  await until(settled, 'the front page, demo started again');
+  await js(`const s = document.getElementById('viewAs'); s.value = [...s.options].find((o) => o.textContent === 'Sam Lee').value; s.dispatchEvent(new Event('change', { bubbles: true }));`);
+  await sleep(1500);
+  await go('/lab/app.html?app=stella-design-scheduling');
+  await until(`document.querySelector('.shub-screen #shub-link-pass')`, 'the link screen on a phone');
+  await shot('link-screen-mobile', { full: false });
+  await size(1440, 900);
 
   // ---- day one: the hub is online and no app has joined it yet. Every app is
   // a plain link to its own sign-in, for whoever a master has ticked it for.

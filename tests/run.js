@@ -7,10 +7,11 @@ import { HubError, kindOf, friendly } from '../js/errors.js';
 import * as A from '../js/access.js';
 import { PROJECTS, problems, tilesFor, homeFor } from '../js/registry.js';
 import * as L from '../js/linking.js';
-import { buildGrid, looseCount, appsFromLinks } from '../js/matrix.js';
+import { buildGrid, looseCount, appsFromLinks, staleLinks, claimedLinks } from '../js/matrix.js';
 import { makeWorld, addProject, addHubLogin, addAppLogin, trap, fakeHub, fakeApp, demoWorld } from '../js/fake.js';
 import { coreTests } from './core.js';
 import { normaliseCard, sitePath, loadCard } from '../js/cards.js';
+import { arrange, effective, moved, toggled, tidyPrefs } from '../js/tiles.js';
 import { decodeDoc } from '../core/v1/hub-impl.js';
 
 const results = [];
@@ -393,12 +394,42 @@ export async function run() {
     expect(w.apps[BOARD].access.engineers, []);
     expect((await again(p)).links[BOARD], { linked: true, role: null, at: w.now, by: hub.me().uid });
   });
-  await test('an old login stops the role until it is taken over', async () => {
-    const { w, hub, app, add, fill } = setup();
+  await test('an old login: the role is given, and the app waits for its owner to link it', async () => {
+    const { w, hub, app, add, fill, again } = setup();
     addAppLogin(w, BOARD, 'old@example.test', 'old-pw');
     const p = await add('old@example.test');
-    expect(await L.giveRole({ hub, app: app(BOARD), model: board, person: p, role: 'floor', fill }), { status: 'legacy' });
+    expect(await L.giveRole({ hub, app: app(BOARD), model: board, person: p, role: 'floor', fill }), { status: 'saved', changed: true, waiting: true });
+    expect(w.apps[BOARD].access.floor, ['old@example.test'], 'listed: the login exists, so nobody can sign up as it');
+    expect(w.apps[BOARD].users['old@example.test'].password, 'old-pw', 'its password is its owner\'s until they link it');
+    const link = (await again(p)).links[BOARD];
+    ok(link.waiting && !link.linked, JSON.stringify(link));
+    expect(link.role, 'floor');
+    ok(w.hub.keys[p.uid][BOARD].k.length >= 32, 'the key it will be given is already saved');
+  });
+  await test('the owner links it on first open: their old password swapped for the saved key', async () => {
+    const { w, hub, app, add, fill, again } = setup();
+    addAppLogin(w, BOARD, 'old@example.test', 'old-pw');
+    let p = await add('old@example.test');
+    await L.giveRole({ hub, app: app(BOARD), model: board, person: p, role: 'floor', fill });
+    // What the core's link screen does, as the person: change the app password to their key.
+    const key = w.hub.keys[p.uid][BOARD];
+    await app(BOARD).changePassword('old@example.test', 'old-pw', key.k);
+    // The master's Accounts screen then proves it and calls it linked.
+    p = await again(p);
+    expect(await L.ensureLink({ hub, app: app(BOARD), person: p, fill }), { status: 'linked', how: 'found' });
+    const link = (await again(p)).links[BOARD];
+    ok(link.linked && !link.waiting, JSON.stringify(link));
+    expect(link.role, 'floor', 'the role survives the change');
+  });
+  await test('a person waiting to link is removed without a key being changed', async () => {
+    const { w, hub, app, add, fill, again } = setup();
+    addAppLogin(w, BOARD, 'old@example.test', 'old-pw');
+    let p = await add('old@example.test');
+    await L.giveRole({ hub, app: app(BOARD), model: board, person: p, role: 'floor', fill });
+    p = await again(p);
+    expect(await L.removePerson({ hub, person: p, apps: { [BOARD]: { app: app(BOARD), model: board } }, fill }), { [BOARD]: 'ok' });
     expect(w.apps[BOARD].access.floor, []);
+    expect(w.apps[BOARD].users['old@example.test'].password, 'old-pw');
   });
   await test('a link that broke since is proved again before the role is listed', async () => {
     const { w, hub, app, add, fill, again } = setup();
@@ -409,8 +440,10 @@ export async function run() {
     p = await again(p);
     ok(p.links[BOARD].linked, 'the hub still notes it as linked');
     w.apps[BOARD].users['ann@example.test'].password = 'set-by-a-reset-email';
-    expect(await L.giveRole({ hub, app: app(BOARD), model: board, person: p, role: 'floor', fill }), { status: 'legacy' });
-    expect(w.apps[BOARD].access.floor, [], 'not listed while the login is not the hub\'s');
+    expect(await L.giveRole({ hub, app: app(BOARD), model: board, person: p, role: 'floor', fill }), { status: 'saved', changed: true, waiting: true });
+    const link = (await again(p)).links[BOARD];
+    ok(link.waiting && !link.linked, 'no longer called linked: its owner re-links it on first open');
+    expect(w.apps[BOARD].access.floor, ['ann@example.test'], 'listed: the login exists');
   });
   await test('an app account deleted since is made again with the same key, then listed', async () => {
     const { w, hub, app, add, fill, again } = setup();
@@ -606,6 +639,37 @@ export async function run() {
     ok(!col.canEdit);
     expect(grid.rows.find((r) => r.email === 'alex@example.test').cells[BOARD].role, 'manager', 'falls back to the hub\'s copy');
   });
+  await test("the hub's copy of a role catches up with the app's list: a master linking themselves gets their tile", () => {
+    const doc = { managers: ['boss@example.test'], engineers: ['ann@example.test'], floor: [], testers: [], masters: ['boss@example.test'] };
+    const people = [
+      // Linked by the amber Link, so the hub holds no role for them: the app says Manager / Engineer.
+      { uid: 'u-boss', email: 'boss@example.test', name: 'Boss', links: { [BOARD]: { linked: true, role: null } } },
+      { uid: 'u-ann', email: 'ann@example.test', name: 'Ann', links: { [BOARD]: { linked: true, role: null } } },
+      // Already right, not linked, and removed: left alone.
+      { uid: 'u-ok', email: 'ok@example.test', name: 'Ok', links: { [BOARD]: { linked: true, role: null } } },
+      { uid: 'u-old', email: 'old@example.test', name: 'Old', links: {} },
+      { uid: 'u-gone', email: 'gone@example.test', name: 'Gone', disabled: true, links: { [BOARD]: { linked: true, role: 'floor' } } },
+    ];
+    const grid = buildGrid({ projects: PROJECTS, joined: { [BOARD]: true }, people, access: { [BOARD]: { doc } }, me: { uid: 'u-boss', email: 'boss@example.test' } });
+    expect(staleLinks(grid), [{ uid: 'u-ann', pid: BOARD, role: 'engineer' }, { uid: 'u-boss', pid: BOARD, role: 'manager' }]);
+    // Once written back, the master has the app as theirs: a tile, and the switcher.
+    expect(appsFromLinks({ [BOARD]: { linked: true, role: 'manager' } }, PROJECTS, { [BOARD]: true }), { [BOARD]: 'manager' });
+    // Taken off the app's list inside the app: the copy follows to none.
+    const grid2 = buildGrid({ projects: PROJECTS, joined: { [BOARD]: true }, people: [{ uid: 'u-ann', email: 'ann@example.test', links: { [BOARD]: { linked: true, role: 'engineer' } } }], access: { [BOARD]: { doc: { ...doc, engineers: [] } } }, me: { uid: 'x', email: 'boss@example.test' } });
+    expect(staleLinks(grid2), [{ uid: 'u-ann', pid: BOARD, role: null }]);
+  });
+  await test('a login waiting for its owner: shown as waiting, not as a problem, and the app is theirs', () => {
+    const doc = { managers: ['boss@example.test'], engineers: [], floor: ['ann@example.test'], testers: [], masters: ['boss@example.test'] };
+    const people = [{ uid: 'u-ann', email: 'ann@example.test', name: 'Ann', links: { [BOARD]: { waiting: true, role: 'floor' } } },
+      { uid: 'u-boss', email: 'boss@example.test', name: 'Boss', links: { [BOARD]: { linked: true, role: 'manager' } } }];
+    const grid = buildGrid({ projects: PROJECTS, joined: { [BOARD]: true }, people, access: { [BOARD]: { doc } }, me: { uid: 'u-boss', email: 'boss@example.test' } });
+    const cell = grid.rows.find((r) => r.uid === 'u-ann').cells[BOARD];
+    expect([cell.state, cell.waiting, cell.linked, cell.canLink], ['waiting', true, false, false]);
+    expect(looseCount(grid), 0, 'nothing for the master to do');
+    expect(appsFromLinks(people[0].links, PROJECTS, { [BOARD]: true }), { [BOARD]: 'floor' }, 'a tile, and opening it is how she links it');
+    expect(claimedLinks(grid, {}), []);
+    expect(claimedLinks(grid, { 'u-ann': { linked: { [BOARD]: '2026-11-19T00:00:00Z' } } }), [{ uid: 'u-ann', pid: BOARD }], 'she says she has: the screen checks it');
+  });
   await test('a master not yet linked to an app has a way in: Link on their own cell, and nowhere else', async () => {
     // What the grid is given when the acting master cannot read an app's lists.
     const { w, hub, add } = setup();
@@ -675,6 +739,37 @@ export async function run() {
     expect(asked, 0);
     expect((await loadCard(backend, { id: BOARD, joined: true, own: false, role: 'floor' }, { email: 'ann@example.test' })).state, 'ready');
     expect(asked, 1);
+  });
+
+  // -------------------------------------------------------------------------
+  group = 'arranging your own tiles';
+  const T = [{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }, { id: 'c', title: 'C' }, { id: 'd', title: 'D' }];
+  const ids = (list) => list.map((t) => `${t.id}${t.hidden ? '-' : ''}`).join(' ');
+  await test('no choice: every tile, in the usual order', () => {
+    expect(ids(arrange(T, null)), 'a b c d');
+  });
+  await test('a chosen order first, and an app not in it keeps its usual place after them', () => {
+    expect(ids(arrange(T, { order: ['c', 'a'] })), 'c a b d');
+    expect(ids(arrange(T, { order: ['x', 'd'] })), 'd a b c', 'an app no longer theirs is ignored');
+  });
+  await test('hiding marks a tile; moving and hiding give the whole new choice', () => {
+    const list = arrange(T, { hidden: ['b'] });
+    expect(ids(list), 'a b- c d');
+    expect(moved(list, 'c', -1), { order: ['a', 'c', 'b', 'd'], hidden: ['b'] });
+    expect(moved(list, 'a', -1).order, ['a', 'b', 'c', 'd'], 'the first cannot go earlier');
+    expect(toggled(list, 'b', false), { order: ['a', 'b', 'c', 'd'], hidden: [] });
+    expect(toggled(list, 'd', true).hidden, ['b', 'd']);
+  });
+  await test('a device with its own choice uses it whole; without one, the person\'s', () => {
+    const mine = { order: ['d'], hidden: ['a'] };
+    const phone = { order: [], hidden: ['c'] };
+    expect(ids(arrange(T, effective(mine, null))), 'd a- b c');
+    expect(ids(arrange(T, effective(mine, phone))), 'a b c- d');
+    expect(effective(null, null), { order: [], hidden: [] });
+  });
+  await test('what is kept is tidied: strings only, no repeats, not too many', () => {
+    expect(tidyPrefs({ order: ['a', 'a', 7, null, 'b'], hidden: 'nope' }), { order: ['a', 'b'], hidden: [] });
+    expect(tidyPrefs({ order: Array.from({ length: 60 }, (_, i) => `p${i}`) }).order.length, 40);
   });
 
   // -------------------------------------------------------------------------

@@ -10,6 +10,7 @@ rules_version = '2';
 //   config/access            { masters: [uid, ...] }
 //   directory/{uid}          a person. Being here is what makes a hub member.
 //   keys/{uid}/p/{projectId} that person's key for one app's project
+//   self/{uid}               what a person keeps about themselves (tiles)
 //   activity/{id}            who changed which account, append-only
 //
 // EVERYTHING IS KEYED BY UID, never by address. Sign-up is on in this project
@@ -26,7 +27,7 @@ rules_version = '2';
 // would trust with everything, on a login nobody shares.
 //
 // A PERSON reads their own directory entry and their own keys, and only while
-// their entry is not disabled. They write nothing.
+// their entry is not disabled. The only thing they write is their own self/{uid}.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -92,6 +93,28 @@ service cloud.firestore {
       allow get: if (signedIn() && me() == u && member()) || master();
       allow list, delete: if master();
       allow create, update: if master() && keyOk(request.resource.data);
+    }
+
+    // What a person keeps about THEMSELVES, and the one thing anyone but a
+    // master may write: their own tile settings (which to hide, in what
+    // order), and which apps they have linked their own login to on first
+    // open (`linked`: { projectId: ISO time }). Nothing here grants anything:
+    // `linked` only tells a master's Accounts screen to check that link.
+    // New settings (a tile's size, say) need their name added here first.
+    function selfOk(d) {
+      return d.keys().hasOnly(['tiles', 'linked', 'at'])
+        && d.get('at', '') is string
+        && d.get('tiles', {}) is map
+        && d.get('tiles', {}).keys().hasOnly(['order', 'hidden'])
+        && d.get('tiles', {}).get('order', []) is list && d.get('tiles', {}).get('order', []).size() <= 40
+        && d.get('tiles', {}).get('hidden', []) is list && d.get('tiles', {}).get('hidden', []).size() <= 40
+        && d.get('linked', {}) is map && d.get('linked', {}).size() <= 40;
+    }
+
+    match /self/{u} {
+      allow get: if (signedIn() && me() == u && member()) || master();
+      allow list, delete: if master();
+      allow create, update: if signedIn() && me() == u && member() && selfOk(request.resource.data);
     }
 
     match /activity/{id} {

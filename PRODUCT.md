@@ -70,9 +70,11 @@ has to know how another app stores its work.
 - **Hub master:** may change accounts. Set in the Firebase console only.
 - **Overview:** the cards on the front page showing what needs attention in each app.
 
-**Capabilities:** one sign-in; the front page (apps and overview together); the app switcher
-inside every app; Accounts (people down, apps across, a role per cell; link, take over,
-rotate, hand back, remove, make a login again); the account log.
+**Capabilities:** one sign-in; the front page (apps and overview together), which each person
+may arrange for themselves (hide and order tiles, for all their devices or one); the app
+switcher inside every app; Accounts, for hub masters only (people down, apps across, a role per
+cell; link, take over, rotate, hand back, remove, make a login again); linking an existing app
+login by its owner, once, the first time they open that app; the account log.
 
 **Constraints:**
 

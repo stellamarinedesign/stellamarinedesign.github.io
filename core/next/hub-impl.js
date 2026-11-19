@@ -117,6 +117,45 @@ async function firebaseProvider() {
       catch { return false; }             // the rules let only a master read it
     },
     readKey: (uid, project) => read(`keys/${uid}/p/${project}`),
+
+    /**
+     * Swap a password the person typed for their key, in ONE APP's project:
+     * sign in there with it and change it. A Firebase app of its own, in
+     * memory, so the app's own session on this page is never touched.
+     */
+    async swapPassword({ project, email, current, next }) {
+      const { PROJECTS } = await import(here('../../js/registry.js'));
+      const p = PROJECTS[project];
+      if (!p) throw Object.assign(new Error('Not an app the hub knows'), { code: 'unknown-app' });
+      const name = `stella-hub:link:${project}`;
+      let a = getApps().find((x) => x.name === name);
+      if (!a) {
+        a = initializeApp(p.config, name);
+        fa.initializeAuth(a, { persistence: fa.inMemoryPersistence });
+        if (p.appCheck) {
+          try {
+            const ac = await import(`${SDK}/firebase-app-check.js`);
+            ac.initializeAppCheck(a, { provider: new ac.ReCaptchaV3Provider(p.appCheck), isTokenAutoRefreshEnabled: true });
+          } catch (e) { console.warn('[hub] App Check did not start:', e?.message ?? e); }
+        }
+      }
+      const au = fa.getAuth(a);
+      const c = await fa.signInWithEmailAndPassword(au, String(email).trim(), current);
+      try { await fa.updatePassword(c.user, next); } finally { await fa.signOut(au).catch(() => {}); }
+    },
+
+    /** Note in the person's own record that they linked this app (a master's Accounts screen then checks it). */
+    async markLinked(uid, project) {
+      const now = new Date().toISOString();
+      const mask = [`linked.\`${project}\``, 'at'].map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
+      const token = await auth.currentUser.getIdToken();
+      const r = await fetch(`${base}/self/${uid}?${mask}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { at: { stringValue: now }, linked: { mapValue: { fields: { [project]: { stringValue: now } } } } } }),
+      });
+      if (!r.ok) throw Object.assign(new Error(`The hub answered ${r.status}`), { status: r.status });
+    },
   };
 }
 
@@ -146,7 +185,8 @@ font-family:var(--font);font-size:14.5px;line-height:1.4;color:var(--tx);color-s
 
 .shub .shub-screen{position:fixed;inset:0;z-index:2147483000;background:var(--g);overflow:auto;display:grid;place-items:center;padding:24px 16px}
 .shub .shub-col{width:100%;max-width:352px;display:grid;gap:16px;justify-items:stretch}
-.shub .shub-col.shub-card{text-align:center}
+.shub .shub-col.shub-card,.shub .shub-head{text-align:center}
+.shub .shub-head{display:grid;gap:8px}
 .shub .shub-mark{width:56px;height:56px;object-fit:contain;justify-self:center;display:block}
 .shub .shub-place{font-family:var(--head);font-weight:700;font-size:19px;line-height:1.25;letter-spacing:var(--ts);text-transform:var(--tt);text-align:center;text-wrap:balance}
 .shub .shub-title{font-family:var(--head);font-weight:700;font-size:19px;line-height:1.25;text-wrap:balance}
@@ -465,6 +505,69 @@ export function createImpl() {
     acts.firstChild.focus();
   }
 
+  // ------------------------------------------------- link your existing login
+
+  /**
+   * The key for this app was refused: the person's login there is still the
+   * one they had before the hub, or a reset email changed its password. They
+   * put it right themselves, once: their current password for the app is
+   * swapped for the key the hub holds, and from then on the hub signs them in.
+   * Resolves true once done. It stays up until then (or they sign out).
+   */
+  function linkScreen({ title = 'this app', project, user }) {
+    return new Promise((resolve) => {
+      let done = false;
+      const n = ctx.note();
+      const email = n.kind === 'user' ? n.email : (user?.email ?? '');
+      const who = h('input', { type: 'email', name: 'username', autocomplete: 'username', value: email, hidden: true });
+      const pw = passwordInput('shub-link-pass', 'current-password');
+      const err = h('p', { class: 'shub-err', id: 'shub-link-err', role: 'alert' });
+      const go = h('button', { class: 'shub-btn shub-primary', type: 'submit' }, 'Link');
+      const lost = h('button', { class: 'shub-link', type: 'button' }, "I don't know it");
+      const form = h('form', { class: 'shub-form', novalidate: true }, who, field(`${title} password`, pw.wrap, 'shub-link-pass'), err, go, lost);
+      const lede = h('p', { class: 'shub-say' }, `Type your current ${title} password once. After that you are signed in to it with this login.`);
+      const help = h('div', { class: 'shub-form', hidden: true },
+        h('p', { class: 'shub-say' }, `Ask a hub master. They delete your old ${title} login in its Firebase console, then press Check link for you in Accounts.`),
+        h('div', { class: 'shub-acts' },
+          h('button', { class: 'shub-btn', type: 'button', onclick: () => { help.hidden = true; form.hidden = false; lede.hidden = false; pw.input.focus(); } }, 'Back'),
+          h('button', { class: 'shub-btn', type: 'button', onclick: async () => { await ctx.hub.signOut(); location.reload(); } }, 'Sign out')));
+      const screen = h('div', { class: 'shub-screen', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'shub-link-title' },
+        h('div', { class: 'shub-col' }, mark(), h('div', { class: 'shub-head' }, h('h2', { class: 'shub-title', id: 'shub-link-title' }, `Link your ${title} login`), lede), form, help));
+
+      const fail = (message) => {
+        err.textContent = message;
+        if (message) { pw.input.setAttribute('aria-invalid', 'true'); pw.input.setAttribute('aria-describedby', 'shub-link-err'); pw.input.focus(); }
+        else pw.input.removeAttribute('aria-invalid');
+      };
+      const busy = (on) => { go.disabled = on; go.textContent = on ? 'Linking…' : 'Link'; };
+      pw.input.addEventListener('input', () => { if (err.textContent) fail(''); });
+      lost.addEventListener('click', () => { form.hidden = true; lede.hidden = true; help.hidden = false; });
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (done || go.disabled) return;
+        if (!pw.input.value) return fail(`Type your ${title} password.`);
+        busy(true);
+        try {
+          const p = await provider();
+          const key = await p.readKey(user.uid, project);
+          if (!key?.k) { busy(false); return fail('This login has no key for that app now. Ask a hub master.'); }
+          await p.swapPassword({ project, email: key.email || email, current: pw.input.value, next: key.k });
+          try { await p.markLinked(user.uid, project); } catch (e2) { console.warn('[hub] could not note the link:', e2?.message ?? e2); }
+          done = true;                 // stays up, busy, until the app is in
+          resolve(true);
+        } catch (e2) {
+          busy(false);
+          const code = String(e2?.code ?? '').toLowerCase();
+          if (/invalid-credential|invalid-login|wrong-password|user-not-found/.test(code)) fail(`That is not your ${title} password.`);
+          else if (code.includes('user-disabled')) fail(`That ${title} login has been switched off. Ask a hub master.`);
+          else fail(say(e2));
+        }
+      });
+      showScreen(screen);
+      pw.input.focus();
+    });
+  }
+
   // --------------------------------------------------------- password dialog
 
   /** Change the hub password: the current one, the new one twice. Resolves true when it was changed. */
@@ -617,6 +720,7 @@ export function createImpl() {
     signOut: async () => { closeSwitcher({ refocus: false }); await (await provider()).signOut(); },
     passwordDialog,
     card,
+    linkScreen,
     closeScreens,
     openSwitcher,
     toast,

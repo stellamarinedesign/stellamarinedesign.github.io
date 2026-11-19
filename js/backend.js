@@ -10,6 +10,7 @@
 //   backend.app(pid)     the app port for one app's project
 //   backend.joined()     { pid: boolean } which apps load the core
 //   backend.hasCard(pid) does that app supply an overview card?
+//   backend.hub.getSelf / setSelf / listSelf   a person's own record (tiles)
 //   backend.card(pid, { email, role })  -> what its card returned
 
 import { PROJECTS } from './registry.js';
@@ -100,6 +101,10 @@ async function realBackend(impl) {
       await fa.signOut(a);
       return c.user.uid;
     },
+    getSelf: async (uid) => { const d = await fs.getDoc(fs.doc(db, 'self', uid)); return d.exists() ? d.data() : null; },
+    // Merged, so tiles and the linked list never overwrite each other.
+    setSelf: (uid, patch) => fs.setDoc(fs.doc(db, 'self', uid), clean(patch), { merge: true }),
+    listSelf: async () => Object.fromEntries((await fs.getDocs(fs.collection(db, 'self'))).docs.map((d) => [d.id, d.data()])),
     log: (entry) => fs.addDoc(fs.collection(db, 'activity'), clean(entry)),
     listLog: async (n = 50) => (await fs.getDocs(fs.query(fs.collection(db, 'activity'), fs.orderBy('at', 'desc'), fs.limit(n)))).docs.map((d) => d.data()),
   };

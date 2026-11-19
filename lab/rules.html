@@ -102,6 +102,7 @@ $('probe').addEventListener('submit', async (ev) => {
     await check('Stranger', 'read who the masters are', 'refused', () => fs.getDoc(fs.doc(stranger.db, 'config', 'access')));
     await check('Stranger', 'make themselves a directory entry', 'refused', () => fs.setDoc(dir(stranger, stranger.uid), { email: 'x@example.test', name: '', links: {} }));
     await check('Stranger', 'write to the account log', 'refused', () => fs.addDoc(fs.collection(stranger.db, 'activity'), { by: stranger.uid, at: now, text: 'probe' }));
+    await check('Stranger', 'write tile settings', 'refused', () => fs.setDoc(fs.doc(stranger.db, 'self', stranger.uid), { tiles: { order: [], hidden: [] }, at: now }));
 
     // A master sets up what the member checks need.
     await check('Master', 'read who the masters are', 'allowed', () => fs.getDoc(fs.doc(master.db, 'config', 'access')));
@@ -125,7 +126,16 @@ $('probe').addEventListener('submit', async (ev) => {
     await check('Member', 'list the directory', 'refused', () => fs.getDocs(fs.collection(member.db, 'directory')));
     await check('Member', 'read the account log', 'refused', () => fs.getDocs(fs.collection(member.db, 'activity')));
 
+    // Their own record (tiles, apps they linked on first open): theirs to write, nobody else's.
+    const mine = (x, uid) => fs.doc(x.db, 'self', uid);
+    await check('Member', 'write their own tile settings', 'allowed', () => fs.setDoc(mine(member, member.uid), { tiles: { order: ['a'], hidden: [] }, linked: {}, at: now }));
+    await check('Member', 'read their own tile settings', 'allowed', () => fs.getDoc(mine(member, member.uid)));
+    await check('Member', 'write a setting the rules do not know', 'refused', () => fs.setDoc(mine(member, member.uid), { tiles: { size: 'big' }, at: now }));
+    await check('Member', "write somebody else's tile settings", 'refused', () => fs.setDoc(mine(member, master.uid), { tiles: { order: [], hidden: [] }, at: now }));
+    await check('Member', "list everybody's settings", 'refused', () => fs.getDocs(fs.collection(member.db, 'self')));
+    await check('Master', "list everybody's settings", 'allowed', () => fs.getDocs(fs.collection(master.db, 'self')));
     await check('Master', 'delete the probe key again', 'allowed', () => fs.deleteDoc(key(master, member.uid)));
+    await check('Master', "delete the member's probe settings", 'allowed', () => fs.deleteDoc(mine(master, member.uid)));
 
     const bad = rows.filter((r) => !r.ok);
     $('sum').hidden = false;
