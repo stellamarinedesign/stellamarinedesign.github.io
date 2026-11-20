@@ -141,7 +141,14 @@ async function boot() {
   if (!state.me) { location.reload(); return; }
 
   // Signed out, or somebody else signed in, here or in another tab: start again.
-  Hub.onChange((me) => { if (!me || me.uid !== state.me.uid) location.reload(); else state.me = me; });
+  // The same person with other apps (a tile ticked, a role given, here or in
+  // another tab): the front page, if it is showing, is drawn again with them.
+  Hub.onChange((me) => {
+    if (!me || me.uid !== state.me.uid) { location.reload(); return; }
+    const before = JSON.stringify([state.me.apps, state.me.master]);
+    state.me = me;
+    if (JSON.stringify([me.apps, me.master]) !== before && location.hash.replace(/^#\/?/, '').split('/')[0] === '') route();
+  });
   drawDemoStrip();
   window.addEventListener('hashchange', route);
   await route();

@@ -46,7 +46,7 @@ async function load({ backend, me }) {
       access[pid] = doc ? { doc } : { error: 'missing' };
     } catch (e) { access[pid] = { error: kindOf(e) }; }
   }));
-  return { people, joined, grid: buildGrid({ projects: PROJECTS, joined, people, access, me }) };
+  return { people, joined, access, grid: buildGrid({ projects: PROJECTS, joined, people, access, me }) };
 }
 
 /** Write back the hub's copies of roles that the apps' lists say otherwise. Returns true if any was written. */
@@ -104,27 +104,46 @@ export async function render(view, ctx) {
 function head(onAdd) {
   return el('div', { class: 'page-head' },
     el('h1', { class: 'h1' }, 'Accounts'),
+    // Says "Saving…" while a step runs (see run() below).
+    el('span', { class: 'saving', role: 'status' }),
     el('span', { class: 'sp' }),
     el('button', { class: 'btn primary', type: 'button', disabled: !onAdd, onclick: onAdd }, icon('plus', 16), 'Add person'));
 }
 
-function draw(view, ctx, { people, grid }) {
+function draw(view, ctx, data) {
+  const { people, grid } = data;
   const { backend, me } = ctx;
   const { hub } = backend;
   const personOf = (uid) => people.find((p) => p.uid === uid);
 
-  /** Run a step, say what happened, and draw again from what is now true. */
+  /**
+   * Run a step, say what happened, and draw again from what is now true.
+   * While it runs the head says "Saving…" and the grid takes no presses (and
+   * looks it). A step reads every app's list again afterwards, unless it hands
+   * back the next picture itself ({ said, next }): a tile tick, which changes
+   * nothing in any app.
+   */
   async function run(step) {
+    const shell = view.querySelector('.grid-shell');
     const wrap = view.querySelector('.grid-wrap');
+    const saving = view.querySelector('.saving');
+    shell?.classList.add('busy');
     wrap?.setAttribute('aria-busy', 'true');
     wrap?.setAttribute('inert', '');
+    if (saving) saving.textContent = 'Saving…';
+    let r = null;
     try {
-      const said = await step();
+      r = await step();
+      const said = typeof r === 'string' ? r : r?.said;
       if (said) ctx.toast(said);
     } catch (e) {
+      r = null;
       ctx.toast(friendly(e), { warn: true, ms: 9000 });
     }
-    await render(view, ctx);
+    // Gone to another page meanwhile: that page is on screen now, not this one.
+    if (location.hash.replace(/^#\/?/, '').split('/')[0] !== 'accounts') return;
+    if (r?.next) draw(view, ctx, r.next);
+    else await render(view, ctx);
   }
 
   /**
@@ -191,10 +210,18 @@ function draw(view, ctx, { people, grid }) {
       const done = await finishLink(person, col, backend.app(col.pid), { status: 'legacy' });
       return done === 'linked' ? `${row.email} is linked to ${col.title}.` : null;
     }),
+    // A tile tick changes nothing in any app, so the grid is drawn again from
+    // what is already here rather than read again from every app.
     tile: (row, col, on) => run(async () => {
-      await L.setPlain({ hub, person: personOf(row.uid), projectId: col.pid, on });
+      const person = personOf(row.uid);
+      await L.setPlain({ hub, person, projectId: col.pid, on });
       if (row.uid === me.uid) await ctx.impl.refresh();
-      return null;
+      const links = { ...person.links };
+      if (on) links[col.pid] = { plain: true }; else delete links[col.pid];
+      const nextPeople = people.map((p) => (p.uid === row.uid ? { ...p, links } : p));
+      const next = { ...data, people: nextPeople, grid: buildGrid({ projects: PROJECTS, joined: data.joined, people: nextPeople, access: data.access, me }) };
+      const whose = row.uid === me.uid ? 'your' : `${row.name || row.email}'s`;
+      return { said: on ? `${col.title} is on ${whose} front page.` : `${col.title} is no longer on ${whose} front page.`, next };
     }),
     rotate: async (row, col) => {
       if (!await confirmDialog({ title: `New key for ${row.email} in ${col.title}?`, body: 'Its devices there sign in again at the hub screen within the hour.', ok: 'New key' })) return;
@@ -272,7 +299,7 @@ function draw(view, ctx, { people, grid }) {
       icon('bang', 18),
       el('span', { class: 'callout-text' }, text),
       looseRows.length
-        ? el('button', { class: 'btn small', type: 'button', 'aria-pressed': String(onlyLoose), onclick: () => { onlyLoose = !onlyLoose; draw(view, ctx, { people, grid }); } }, onlyLoose ? 'Show everyone' : 'Show only these')
+        ? el('button', { class: 'btn small', type: 'button', 'aria-pressed': String(onlyLoose), onclick: () => { onlyLoose = !onlyLoose; draw(view, ctx, data); } }, onlyLoose ? 'Show everyone' : 'Show only these')
         : null));
   }
 

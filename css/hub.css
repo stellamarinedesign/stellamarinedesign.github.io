@@ -175,6 +175,13 @@ a.line:hover { background: var(--bg); }
    scrolls", not as a mistake. js/views/accounts.js sets `more` as the grid is
    scrolled or resized. */
 .grid-shell { position: relative; }
+/* While a step runs (js/views/accounts.js, run): the head says "Saving…" and
+   the grid, which takes no presses then, fades back. The fade waits 150ms so a
+   quick step does not flicker. */
+.saving { color: var(--text2); font-size: var(--fs-sm); }
+.saving:empty { display: none; }
+.grid-shell.busy { cursor: progress; }
+.grid-shell.busy .grid-wrap { opacity: .55; transition: opacity var(--dur-fast) var(--ease-out) 150ms; }
 .grid-shell.more::after { content: ""; position: absolute; top: 1px; right: 1px; bottom: 1px; width: 40px; pointer-events: none;
                           border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
                           background: linear-gradient(to right, transparent, var(--bg)); }
@@ -297,7 +304,7 @@ a.line:hover { background: var(--bg); }
 }
 @media (prefers-reduced-motion: reduce) {
   .box, .menu { animation: none; }
-  .toast { transition: none; }
+  .toast, .grid-shell.busy .grid-wrap { transition: none; }
 }
 
 /* Space held for a card from the moment its tile is drawn, at every width: a

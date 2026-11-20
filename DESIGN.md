@@ -897,8 +897,11 @@ carefully, at a desk.
   one for an app whose roles are fixed). An app that has not joined shows a "Tile" tick box
   instead.
 - **A removed person** keeps their row, with the name and address struck through in Muted Ash.
-- **While a step runs** the grid cannot be pressed and is marked busy, then it is drawn again
-  from what is now true.
+- **While a step runs** the grid cannot be pressed and is marked busy: "Saving…" in Ash, small,
+  beside the heading, and the grid at 55% (after 150ms, so a quick step does not flicker; at
+  once with reduced motion), with a progress pointer over it. Then it is drawn again from what
+  is now true. A tile tick is drawn again from what the screen already holds (it changes
+  nothing in any app) and says what changed: "<App> is on <name>'s front page."
 
 ### Leftover addresses
 
