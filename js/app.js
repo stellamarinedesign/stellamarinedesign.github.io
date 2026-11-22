@@ -125,8 +125,18 @@ async function route() {
 async function boot() {
   console.info(`${HUB_NAME} ${VERSION} · core ${Hub.version}`);
   // Inside the hub's own home-screen icon every app shares this storage, so
-  // the switcher may be shown there (see core/v1/hub.js, inAppIcon).
-  if (navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) store.set(SHELL_KEY, '1');
+  // the switcher may be shown there (see core/v1/hub.js, inAppIcon). Only that
+  // icon's start address carries ?from=icon (manifest.json). Being standalone
+  // is not enough: from inside ANOTHER app's icon the hub opens in a Safari
+  // view that shares that icon's storage and counts as standalone too, and
+  // marking it would show the switcher there (iOS 18, 23 Nov).
+  const params = new URLSearchParams(location.search);
+  if (params.get('from') === 'icon') {
+    store.set(SHELL_KEY, '1');
+    params.delete('from');
+    const q = params.toString();
+    history.replaceState(null, '', `${location.pathname}${q ? `?${q}` : ''}${location.hash}`);
+  }
 
   try {
     await Hub.signIn({ title: HUB_NAME });
@@ -150,8 +160,17 @@ async function boot() {
     if (JSON.stringify([me.apps, me.master]) !== before && location.hash.replace(/^#\/?/, '').split('/')[0] === '') route();
   });
   drawDemoStrip();
+  // Every app this person has, hidden tiles included, a tap away: the same
+  // switcher every app's header carries (core/v1/hub.js), beside the cog.
+  Hub.switcher($('hubSlot'));
   window.addEventListener('hashchange', route);
   await route();
+
+  // The page was drawn from this browser's note, which the core re-checks at
+  // most once a day. The hub page is where people look for their apps, so it
+  // asks the hub every time it opens: a tile ticked or a role given since, from
+  // another browser, shows now (Hub.onChange above draws the front page again).
+  state.impl.refresh().catch(() => { /* not reachable now: the note stands */ });
 }
 
 boot();

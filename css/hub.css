@@ -38,6 +38,10 @@ input, textarea { caret-color: var(--focus); }
 [data-theme="workshop"] .tabs a[aria-current="page"] { border-bottom-color: currentColor; }
 .tabs a:focus-visible { outline-offset: -2px; }
 .who { color: var(--header-muted); font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+/* The app switcher and the cog: two buttons that belong together, so closer than the header's gap. */
+.hd-end { display: flex; align-items: center; gap: var(--sp-1); }
+.hd-apps { display: flex; }
+.hd-apps:empty { display: none; }
 .ib { display: inline-grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border: 0; border-radius: var(--radius);
       background: transparent; color: inherit; }
 .ib:hover { background: var(--bg2); }

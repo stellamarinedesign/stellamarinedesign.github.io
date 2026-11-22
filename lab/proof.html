@@ -8,13 +8,13 @@
 <script>
   try { const t = localStorage.getItem('stella.hub.theme'); if (t && t !== 'stella') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
-<link rel="icon" href="/images/brand/stella-icon.png">
+<link rel="icon" type="image/png" href="/images/brand/favicon.png">
 <!-- Its own home-screen icon, scoped to /lab/ as an app's is to its folder:
      without these, iOS 18 adds the page as a Safari bookmark, not an app. -->
 <link rel="manifest" href="/lab/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Proof">
-<link rel="apple-touch-icon" href="/images/brand/stella-icon.png">
+<link rel="apple-touch-icon" href="/images/brand/apple-touch-icon.png">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/themes.css">
 <link rel="stylesheet" href="/css/hub.css">
@@ -202,7 +202,7 @@
       el('button', { class: 'btn', type: 'button', onclick: function () { auth.signOut().then(reload); } }, ['Sign out of this app only']),
       el('button', { class: 'btn', type: 'button', onclick: function () { Hub.signOut().then(reload); } }, ['Sign out everywhere']),
       el('button', { class: 'btn', type: 'button', onclick: function () { Hub.openPassword(); } }, ['Password']),
-      el('button', { class: 'btn', type: 'button', onclick: function () { localStorage.removeItem('stella.hub.session'); reload(); } }, ['Forget the hub on this device']),
+      el('button', { class: 'btn', type: 'button', onclick: function () { localStorage.removeItem('stella.hub.session'); localStorage.removeItem('stella.hub.shell'); reload(); } }, ['Forget the hub on this device']),
       el('button', { class: 'btn', type: 'button', onclick: function () { auth.signOut().then(function () { location.search = 'own'; }); } }, ['Sign in the old way']),
       el('a', { class: 'btn', href: '/' }, ['Open ' + HUB_NAME])]));
 })();

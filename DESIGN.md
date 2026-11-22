@@ -988,7 +988,15 @@ core's copy). The core reads the host page's theme each time it draws and wears 
 - **Switcher button:** a 36px square in the host app's header (44px on a coarse pointer) with
   an 8px corner and nine dots in the header's text colour. Hover lays a translucent grey veil
   over it, a little stronger while the switcher is open. It is drawn only for a login with two
-  or more apps.
+  or more apps. The hub's own header carries it too, just left of the cog and 4px from it (the
+  two belong together, so closer than the header's 16px), so the same control is in the same
+  place everywhere, and every app a person has is a tap away even when its tile is hidden
+  from their front page.
+- **Icons:** the browser-tab icon and the home-screen icons are square files made from the
+  mark at its own shape (`images/brand/favicon.png`, `apple-touch-icon.png`, `icon-192.png`,
+  `icon-512.png`), never the 267 × 150 mark itself, which a square slot stretches sideways.
+  The tab icon is the mark nearly full width on transparent; the home-screen icons are the
+  mark at about 70% width, centred on the family's near-black, as material ordering's are.
 - **App switcher:** a panel under the button with right edges in line: 324px wide, Shadow Grey
   with a hairline, 11px corners, 12px of padding and the floating shadow. Inside is a grid of
   three columns, 4px apart. Each app is a cell at least 84px tall with a 24px icon over its
