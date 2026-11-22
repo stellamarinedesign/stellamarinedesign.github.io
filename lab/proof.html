@@ -9,6 +9,12 @@
   try { const t = localStorage.getItem('stella.hub.theme'); if (t && t !== 'stella') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
 <link rel="icon" href="/images/brand/stella-icon.png">
+<!-- Its own home-screen icon, scoped to /lab/ as an app's is to its folder:
+     without these, iOS 18 adds the page as a Safari bookmark, not an app. -->
+<link rel="manifest" href="/lab/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Proof">
+<link rel="apple-touch-icon" href="/images/brand/stella-icon.png">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/themes.css">
 <link rel="stylesheet" href="/css/hub.css">

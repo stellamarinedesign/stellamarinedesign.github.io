@@ -1,0 +1,12 @@
+{
+  "name": "Proof: material ordering (test)",
+  "short_name": "Proof",
+  "start_url": "/lab/proof.html",
+  "scope": "/lab/",
+  "display": "standalone",
+  "background_color": "#0E0A0A",
+  "theme_color": "#282827",
+  "icons": [
+    { "src": "/images/brand/stella-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
