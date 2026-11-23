@@ -502,6 +502,33 @@ export async function run() {
     await L.setPlain({ hub, person: p, projectId: ORDERING_TEST, on: false });
     ok(!(await again(p)).links[ORDERING_TEST]);
   });
+  await test("linking notes the role the app's own list already gives, at once", async () => {
+    // 23 Nov: a master with a tile tick linked their own login, already the
+    // Design lead there, and the app left their front page and switcher
+    // until the next Accounts load caught the copy up.
+    const { w, boss, hub, app, add, again } = setup();
+    addAppLogin(w, DESIGN, BOSS, 'their-old-pw');
+    await L.setPlain({ hub, person: await hub.getPerson(boss), projectId: DESIGN, on: true });
+    await L.takeOver({ hub, app: app(DESIGN), person: await hub.getPerson(boss), currentPassword: 'their-old-pw', model: design });
+    const mine = (await hub.getPerson(boss)).links[DESIGN];
+    ok(mine.linked && !mine.plain, 'the tick is replaced by the link');
+    expect(mine.role, 'lead');
+    expect(appsFromLinks({ [DESIGN]: mine }), { [DESIGN]: 'lead' }, 'so the app stays on their front page');
+    // Listed in the app before the hub made their login there.
+    w.apps[DESIGN].access.designers.push('ann@example.test');
+    const ann = await add('ann@example.test');
+    await L.ensureLink({ hub, app: app(DESIGN), person: ann, model: design });
+    expect((await again(ann)).links[DESIGN].role, 'designer');
+  });
+  await test("...and keeps the hub's copy when the list cannot be read", async () => {
+    const { w, hub, app, add, again } = setup();
+    const ann = await add('ann@example.test');
+    w.apps[DESIGN].access.designers.push('ann@example.test');
+    await L.ensureLink({ hub, app: app(DESIGN, null), person: ann, model: design });
+    const link = (await again(ann)).links[DESIGN];
+    ok(link.linked, 'linked all the same');
+    expect(link.role, null, "the Accounts screen's catch-up mends it");
+  });
 
   // -------------------------------------------------------------------------
   group = 'people';

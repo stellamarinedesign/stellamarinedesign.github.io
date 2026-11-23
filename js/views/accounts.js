@@ -70,7 +70,7 @@ async function catchUp({ backend, me, impl }, { people, grid }) {
   for (const c of claimedLinks(grid, self)) {
     const person = people.find((p) => p.uid === c.uid);
     try {
-      const r = await L.confirmClaim({ hub, app: backend.app(c.pid), person });
+      const r = await L.confirmClaim({ hub, app: backend.app(c.pid), person, model: PROJECTS[c.pid]?.access });
       if (r.status === 'linked') { wrote = true; if (c.uid === me.uid) mine = true; }
     } catch (e) { console.warn('[hub] could not check a link its owner made:', c.pid, kindOf(e)); }
   }
@@ -154,14 +154,15 @@ function draw(view, ctx, data) {
   async function finishLink(person, col, app, first) {
     let r = first;
     let error = '';
+    const model = PROJECTS[col.pid]?.access;
     while (r.status !== 'linked') {
       const answer = await linkHelpDialog({ person, col, status: r.status, key: r.key, error, self: person.uid === me.uid });
       if (!answer) return null;
       if (answer.waiting) { await L.markWaiting({ hub, person, projectId: col.pid, app }); return 'waiting'; }
       try {
-        if (answer.password) r = await L.takeOver({ hub, app, person, currentPassword: answer.password });
+        if (answer.password) r = await L.takeOver({ hub, app, person, currentPassword: answer.password, model });
         else {
-          r = await L.ensureLink({ hub, app, person });
+          r = await L.ensureLink({ hub, app, person, model });
           error = r.status === 'linked' ? '' : 'That password does not sign in there yet. Check the user was added with exactly this one.';
         }
       } catch (e) { error = kindOf(e) === 'credential' ? 'That is not its password.' : friendly(e); }
@@ -190,7 +191,7 @@ function draw(view, ctx, data) {
     link: (row, col) => run(async () => {
       const person = personOf(row.uid);
       const app = backend.app(col.pid);
-      const r = await L.ensureLink({ hub, app, person });
+      const r = await L.ensureLink({ hub, app, person, model: PROJECTS[col.pid]?.access });
       if (r.status === 'linked') {
         if (person.uid === me.uid) await ctx.impl.refresh();
         return `${row.email} is linked to ${col.title}.`;

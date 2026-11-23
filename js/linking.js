@@ -51,7 +51,7 @@
 
 import { newKey, tempPassword, tidyEmail, isEmail } from './keys.js';
 import { HubError, kindOf } from './errors.js';
-import { roleOps, pinOps, roleLabel } from './access.js';
+import { roleOps, pinOps, roleLabel, roleOf } from './access.js';
 
 const stamp = (hub) => ({ at: hub.now(), by: hub.me().uid });
 /** What the account log calls an app: its title where the port carries one. */
@@ -77,7 +77,24 @@ async function keyFor(hub, person, pid, fill) {
   return key;
 }
 
-const noteLinked = (hub, person, pid) => hub.setLink(person.uid, pid, { linked: true, role: person.links?.[pid]?.role ?? null, ...stamp(hub) });
+/**
+ * Note the link, with the role the app's OWN list gives the person when the
+ * acting master can read it now (always so when masters link themselves).
+ * The hub's copy alone may hold no role: a login that had its role there
+ * before it was linked, or only a tile tick, would then have no tile and no
+ * place in the switcher until the next Accounts load caught up (23 Nov,
+ * design scheduling). Not readable: the copy stands, and the catch-up mends it.
+ */
+async function noteLinked(hub, person, pid, { app = null, model = null } = {}) {
+  let role = person.links?.[pid]?.role ?? null;
+  if (app && model && !model.fixed) {
+    try {
+      const doc = await app.readAccess();
+      if (doc) role = roleOf(model, doc, person.email);
+    } catch { /* the Accounts screen's catch-up brings the copy up to date */ }
+  }
+  return hub.setLink(person.uid, pid, { linked: true, role, ...stamp(hub) });
+}
 
 /**
  * The app is this person's, and they link their existing login themselves on
@@ -100,8 +117,8 @@ export async function markWaiting({ hub, person, projectId, role = undefined, ap
  * Logged here, by the master's screen, because the person's own device cannot
  * write the log.
  */
-export async function confirmClaim({ hub, app, person, fill }) {
-  const r = await ensureLink({ hub, app, person, fill });
+export async function confirmClaim({ hub, app, person, fill, model = null }) {
+  const r = await ensureLink({ hub, app, person, fill, model });
   const email = tidyEmail(person.email);
   if (r.status === 'linked' && r.how === 'found') say(hub, 'link', `${email} linked their own ${nameOf(app)} login when they first opened it.`, { target: email, project: app.projectId });
   return r;
@@ -120,7 +137,7 @@ export async function confirmClaim({ hub, app, person, fill }) {
  *                                        browser: take an existing login over, or
  *                                        add the user in its console with this key
  */
-export async function ensureLink({ hub, app, person, fill }) {
+export async function ensureLink({ hub, app, person, fill, model = null }) {
   const pid = app.projectId;
   const email = tidyEmail(person.email);
   let key = await keyFor(hub, person, pid, fill);
@@ -136,7 +153,7 @@ export async function ensureLink({ hub, app, person, fill }) {
     if (which === 'next') { key = { k: key.next, email, ...stamp(hub) }; await hub.putKey(person.uid, pid, key); }
     how = 'found';
   }
-  await noteLinked(hub, person, pid);
+  await noteLinked(hub, person, pid, { app, model });
   if (how === 'made') say(hub, 'link', `${email} linked to ${nameOf(app)}.`, { target: email, project: pid });
   return { status: 'linked', how };
 }
@@ -147,12 +164,12 @@ export async function ensureLink({ hub, app, person, fill }) {
  * kiosk's queued offline writes belong to; deleting and remaking it would
  * strand them.
  */
-export async function takeOver({ hub, app, person, currentPassword, fill }) {
+export async function takeOver({ hub, app, person, currentPassword, fill, model = null }) {
   const pid = app.projectId;
   const email = tidyEmail(person.email);
   const key = await keyFor(hub, person, pid, fill);
   await app.changePassword(email, currentPassword, key.k);
-  await noteLinked(hub, person, pid);
+  await noteLinked(hub, person, pid, { app, model });
   say(hub, 'link', `${email}: its existing ${nameOf(app)} login taken over.`, { target: email, project: pid });
   return { status: 'linked', how: 'taken' };
 }
