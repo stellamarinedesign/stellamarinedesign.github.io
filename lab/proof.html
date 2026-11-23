@@ -196,6 +196,8 @@
       row('This app\'s own session', user ? user.email + ' (' + user.uid + ')' : 'none'),
       row('Its own lists say', role),
       row('Last sign-in answer', lastAnswer || 'none on this load'),
+      row('Home-screen app', (navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) ? 'yes' : 'no, a browser tab'),
+      row('Hub icon mark', (function () { try { return localStorage.getItem('stella.hub.shell') === '1'; } catch (e) { return false; } })() ? 'set: this storage is the hub\'s own icon' : 'not set'),
       row('Hub', Hub.version))),
     el('div', { class: 'actions' }, [
       el('button', { class: 'btn', type: 'button', onclick: reload }, ['Reload']),

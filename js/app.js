@@ -125,14 +125,18 @@ async function route() {
 async function boot() {
   console.info(`${HUB_NAME} ${VERSION} · core ${Hub.version}`);
   // Inside the hub's own home-screen icon every app shares this storage, so
-  // the switcher may be shown there (see core/v1/hub.js, inAppIcon). Only that
-  // icon's start address carries ?from=icon (manifest.json). Being standalone
-  // is not enough: from inside ANOTHER app's icon the hub opens in a Safari
-  // view that shares that icon's storage and counts as standalone too, and
-  // marking it would show the switcher there (iOS 18, 23 Nov).
+  // the switcher may be shown there (see core/v1/hub.js, inAppIcon). Being
+  // standalone is not enough to know it: from inside ANOTHER app's icon the hub
+  // opens in a Safari view that shares that icon's storage and counts as
+  // standalone too, and marking it would show the switcher there (iOS 18,
+  // 23 Nov). That view is always reached by a link from the app's page, so it
+  // has a referrer; the hub's own icon, opened from the Home Screen, has none.
+  // Its start address also carries ?from=icon (manifest.json), for systems that
+  // honour it; on Pete's iPad (iOS 18.7) that alone did not mark the icon.
   const params = new URLSearchParams(location.search);
-  if (params.get('from') === 'icon') {
-    store.set(SHELL_KEY, '1');
+  const standalone = navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  if (params.get('from') === 'icon' || (standalone && !document.referrer)) store.set(SHELL_KEY, '1');
+  if (params.has('from')) {
     params.delete('from');
     const q = params.toString();
     history.replaceState(null, '', `${location.pathname}${q ? `?${q}` : ''}${location.hash}`);
