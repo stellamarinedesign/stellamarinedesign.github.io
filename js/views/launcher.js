@@ -14,7 +14,7 @@
 // do not wait: they are drawn from the copy of that choice this browser kept
 // last time, and redrawn only if it changed on another device since.
 
-import { el, icon } from '../ui.js';
+import { el, icon, working } from '../ui.js';
 import { tilesFor } from '../registry.js';
 import { loadCard } from '../cards.js';
 import { arrange, effective, moved, toggled, tidyPrefs, same } from '../tiles.js';
@@ -153,7 +153,7 @@ function editor(view, ctx, tiles, mineAtStart) {
         onclick: () => { here = null; local.set(HERE(me.uid), null); scope = 'all'; draw(); toast('This device shows your usual tiles again.'); },
       }, 'Use my usual tiles here') : null,
       el('span', { class: 'sp' }),
-      el('button', { class: 'btn primary', type: 'button', onclick: async () => { await saveMine(); location.hash = '#/'; } }, 'Done'));
+      el('button', { class: 'btn primary', type: 'button', onclick: async (e) => { working(e.currentTarget, 'Saving…'); await saveMine(); location.hash = '#/'; } }, 'Finish editing'));
 
     const grid = el('div', { class: 'tiles editing' });
     arranged.forEach((t, i) => {
@@ -237,7 +237,7 @@ async function fill(face, t, me, backend) {
 
   const { card } = got;
   const label = el('div', { class: 't-label' }, card.title || 'Now');
-  if (card.count) label.append(el('span', { class: 'count', 'aria-label': `${card.count} waiting` }, card.count));
+  if (card.count) label.append(el('span', { class: 'count', 'aria-label': `${card.count} waiting` }, card.count > 99 ? '99+' : String(card.count)));
   if (!card.items.length) {
     face.replaceChildren(label, el('div', { class: 't-quiet' }, card.empty || 'Nothing waiting.'));
     return;

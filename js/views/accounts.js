@@ -14,7 +14,7 @@
 // This screen is where somebody can be locked out by mistake, so nothing
 // destructive happens on one click, and every refusal says what to do next.
 
-import { el, icon, menu, copyText, withReveal } from '../ui.js';
+import { el, icon, menu, copyText, withReveal, shake, working } from '../ui.js';
 import { openDialog, confirmDialog, promptDialog } from '../dialog.js';
 import { PROJECTS, HUB_NAME } from '../registry.js';
 import { buildGrid, looseCount, staleLinks, claimedLinks } from '../matrix.js';
@@ -228,7 +228,7 @@ function draw(view, ctx, data) {
       run(async () => { await L.rotateLink({ hub, app: backend.app(col.pid), person: personOf(row.uid) }); return `${row.email} has a new key for ${col.title}.`; });
     },
     handBack: async (row, col) => {
-      if (!await confirmDialog({ title: `Hand ${col.title} back to ${row.email}?`, body: `Its login there gets a password of its own again and the hub forgets its key. ${HUB_NAME} will no longer sign it in to ${col.title}.`, ok: 'Hand back', destructive: true })) return;
+      if (!await confirmDialog({ title: `Hand ${col.title} back to ${row.email}?`, body: `Its login there gets a password of its own again and the hub forgets its key. ${HUB_NAME} will no longer sign it in to ${col.title}.`, ok: 'Hand back', cancel: 'Keep it linked', destructive: true })) return;
       run(async () => {
         const r = await L.handBack({ hub, app: backend.app(col.pid), person: personOf(row.uid) });
         if (row.uid === me.uid) await ctx.impl.refresh();
@@ -241,7 +241,7 @@ function draw(view, ctx, data) {
       catch (e) { ctx.toast(friendly(e), { warn: true }); }
     },
     rename: async (row) => {
-      const name = await promptDialog({ title: `Name for ${row.email}`, label: 'Name', value: row.name, required: false, validate: (v) => (v.length > 80 ? 'Keep it under 80 characters.' : null) });
+      const name = await promptDialog({ title: `Name for ${row.email}`, label: 'Name', value: row.name, ok: 'Save name', required: false, validate: (v) => (v.length > 80 ? 'Keep it under 80 characters.' : null) });
       if (name === null) return;
       run(async () => { await hub.patchPerson(row.uid, { name }); if (row.uid === me.uid) await ctx.impl.refresh(); return null; });
     },
@@ -256,7 +256,7 @@ function draw(view, ctx, data) {
       });
     },
     remove: async (row) => {
-      if (!await confirmDialog({ title: `Remove ${row.email}?`, body: 'Off every app\'s list, a new key everywhere, and no more keys for this login. Nothing is deleted: Restore brings the login back, and its roles are given again.', ok: 'Remove', destructive: true })) return;
+      if (!await confirmDialog({ title: `Remove ${row.email}?`, body: 'Off every app\'s list, a new key everywhere, and no more keys for this login. Nothing is deleted: Restore brings the login back, and its roles are given again.', ok: 'Remove login', cancel: 'Keep login', destructive: true })) return;
       run(async () => {
         const apps = Object.fromEntries(grid.columns.filter((c) => c.kind !== 'plain').map((c) => [c.pid, { app: backend.app(c.pid), model: PROJECTS[c.pid].access }]));
         const results = await L.removePerson({ hub, person: personOf(row.uid), apps });
@@ -343,15 +343,16 @@ function draw(view, ctx, data) {
 
 function rowNode(row, columns, act) {
   const more = el('button', { class: 'ib', type: 'button', 'aria-label': `More for ${row.email}`, 'aria-haspopup': 'menu', 'aria-expanded': 'false' }, icon('more'));
+  const anyLinked = Object.values(row.cells).some((c) => c.linked);
   more.addEventListener('click', () => menu(more, [
     { heading: row.email },
     { label: 'Name', icon: 'pencil', onSelect: () => act.rename(row) },
-    { label: 'New keys everywhere', icon: 'key', disabled: row.disabled || !Object.values(row.cells).some((c) => c.linked), onSelect: () => act.rotateAll(row) },
+    { label: 'New keys everywhere', icon: 'key', disabled: row.disabled || !anyLinked, hint: row.disabled ? 'Removed' : (anyLinked ? null : 'None linked'), onSelect: () => act.rotateAll(row) },
     { label: 'Make login again', icon: 'restore', onSelect: () => act.remake(row) },
     'sep',
     row.disabled
       ? { label: 'Restore', icon: 'restore', onSelect: () => act.restore(row) }
-      : { label: 'Remove', icon: 'trash', danger: true, disabled: row.self, onSelect: () => act.remove(row) },
+      : { label: 'Remove', icon: 'trash', danger: true, disabled: row.self, hint: row.self ? 'Not your own' : null, onSelect: () => act.remove(row) },
   ], { label: `More for ${row.email}` }));
 
   // The person's own menu sits with the person, in the column that stays put
@@ -456,8 +457,8 @@ function onceDialog({ title, lede, label, secret }) {
       el('h3', {}, title),
       el('p', { class: 'lede' }, lede),
       el('div', { class: 'fresh' }, el('span', { class: 'cap' }, label), el('div', { class: 'fresh-line' }, el('code', {}, secret), copy)),
-      el('p', { class: 'hint' }, 'Shown once. It goes when this closes.'),
-      el('div', { class: 'actions' }, el('button', { class: 'btn primary', type: 'button', 'data-autofocus': '', onclick: () => close(true) }, 'Done')));
+      el('p', { class: 'hint' }, 'Shown once. It cannot be shown again after this.'),
+      el('div', { class: 'actions' }, el('button', { class: 'btn primary', type: 'button', 'data-autofocus': '', onclick: () => close(true) }, 'Hide password')));
   }, { label: title, guard: true });
 }
 
@@ -469,19 +470,22 @@ function addPersonDialog({ hub, email = '' }) {
     const theirs = el('input', { class: 'input', id: 'apPass', type: 'password', autocomplete: 'off' });
     const adopt = el('div', { class: 'field', hidden: true }, el('label', { for: 'apPass' }, 'Its password'), withReveal(theirs));
     const err = el('div', { class: 'form-err', id: 'apErr', role: 'alert' });
-    const go = el('button', { class: 'btn primary', type: 'button' }, 'Add');
+    const go = el('button', { class: 'btn primary', type: 'button' }, 'Add person');
+    let idle = null;               // puts the button back after a refusal
     // The field an error is about is marked as well as focused, so it is seen and heard as the one at fault.
     const fail = (message, at) => {
       err.textContent = message;
-      go.disabled = false;
+      idle?.();
+      idle = null;
       for (const i of [mail, name, theirs]) { i.removeAttribute('aria-invalid'); i.removeAttribute('aria-describedby'); }
-      if (at) { at.setAttribute('aria-invalid', 'true'); at.setAttribute('aria-describedby', 'apErr'); at.focus(); }
+      if (at) { at.setAttribute('aria-invalid', 'true'); at.setAttribute('aria-describedby', 'apErr'); at.focus(); shake(at); }
     };
     for (const i of [mail, name, theirs]) i.addEventListener('input', () => i.removeAttribute('aria-invalid'));
     const submit = async () => {
       const e = tidyEmail(mail.value);
       if (!isEmail(e)) return fail('That does not look like an email address.', mail);
-      go.disabled = true;
+      if (go.disabled) return;
+      idle = working(go, 'Adding…');
       err.textContent = '';
       try {
         if (!adopt.hidden) {
@@ -494,6 +498,8 @@ function addPersonDialog({ hub, email = '' }) {
       } catch (x) {
         if (kindOf(x) === 'login-exists') {
           adopt.hidden = false;
+          idle?.();
+          idle = null;
           go.textContent = 'Add with its password';
           return fail(`${e} already has a hub login that is not in the directory. If it is theirs, type its password. If you did not expect it, delete it in the hub project's console first.`, theirs);
         }
@@ -524,9 +530,10 @@ function linkHelpDialog({ person, col, status, key, error, self = false }) {
     const err = el('div', { class: 'form-err', id: 'lhErr', role: 'alert' }, error);
     const wrong = (on) => { if (on) { pass.setAttribute('aria-invalid', 'true'); pass.setAttribute('aria-describedby', 'lhErr'); } else pass.removeAttribute('aria-invalid'); };
     wrong(Boolean(error));
+    if (error) requestAnimationFrame(() => shake(pass));
     pass.addEventListener('input', () => wrong(false));
     const take = el('button', { class: 'btn primary', type: 'button' }, 'Take over');
-    take.addEventListener('click', () => { if (!pass.value) { err.textContent = 'Type its current password.'; wrong(true); pass.focus(); } else close({ password: pass.value }); });
+    take.addEventListener('click', () => { if (!pass.value) { err.textContent = 'Type its current password.'; wrong(true); pass.focus(); shake(pass); } else close({ password: pass.value }); });
     pass.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); take.click(); } });
     pass.dataset.autofocus = '';
     const cancel = el('button', { class: 'btn', type: 'button', onclick: () => guard.dismiss() }, 'Cancel');
@@ -548,11 +555,11 @@ function linkHelpDialog({ person, col, status, key, error, self = false }) {
       el('p', { class: 'lede' }, `If ${person.email} has a login there already, type its current password to take it over.`),
       el('div', { class: 'field' }, el('label', { for: 'lhPass' }, 'Its current password'), withReveal(pass)),
       el('div', { class: 'actions' }, take),
-      el('p', { class: 'lede' }, `If it has none, add the user in ${col.title}'s Firebase console (Authentication, Add user) with this password, then press Added.`),
+      el('p', { class: 'lede' }, `If it has none, add the user in ${col.title}'s Firebase console (Authentication, Add user) with this password, then press Check link.`),
       el('div', { class: 'fresh' }, el('span', { class: 'cap' }, 'Password to add it with'), el('div', { class: 'fresh-line' }, el('code', {}, key), copy)),
       err,
       el('div', { class: 'actions' },
-        el('button', { class: 'btn', type: 'button', onclick: () => close({ added: true }) }, 'Added'),
+        el('button', { class: 'btn', type: 'button', onclick: () => close({ added: true }) }, 'Check link'),
         // An existing login there, whose password its owner knows: they link it on first open.
         self ? null : el('button', { class: 'btn', type: 'button', onclick: () => close({ waiting: true }) }, 'They link it themselves'),
         cancel));

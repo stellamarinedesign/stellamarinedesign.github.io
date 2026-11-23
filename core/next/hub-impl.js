@@ -190,7 +190,7 @@ font-family:var(--font);font-size:14.5px;line-height:1.4;color:var(--tx);color-s
 .shub .shub-mark{width:56px;height:56px;object-fit:contain;justify-self:center;display:block}
 .shub .shub-place{font-family:var(--head);font-weight:700;font-size:19px;line-height:1.25;letter-spacing:var(--ts);text-transform:var(--tt);text-align:center;text-wrap:balance}
 .shub .shub-title{font-family:var(--head);font-weight:700;font-size:19px;line-height:1.25;text-wrap:balance}
-.shub .shub-say{color:var(--tx2);overflow-wrap:anywhere}
+.shub .shub-say{color:var(--tx2);overflow-wrap:anywhere;text-wrap:pretty}
 .shub .shub-form{display:grid;gap:12px}
 .shub .shub-field{display:grid;gap:6px}
 .shub .shub-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
@@ -201,13 +201,16 @@ font-family:var(--font);font-size:14.5px;line-height:1.4;color:var(--tx);color-s
 .shub .shub-reveal{position:absolute;right:4px;top:4px;height:28px;padding:0 10px;border-radius:calc(var(--r) - 2px);color:var(--tx3);font-size:13px;cursor:pointer}
 .shub .shub-reveal:hover{color:var(--tx);background:var(--bg2)}
 .shub .shub-err{color:var(--rt);font-size:13px;min-height:18px;overflow-wrap:anywhere}
-.shub .shub-note{color:var(--tx3);font-size:13px;overflow-wrap:anywhere}
-.shub .shub-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border-radius:var(--r);font-weight:600;cursor:pointer;border:1px solid var(--bd2);color:var(--tx2);text-align:center;white-space:nowrap;transition:background-color 120ms var(--ease),border-color 120ms var(--ease)}
+.shub .shub-note{color:var(--tx3);font-size:13px;overflow-wrap:anywhere;text-wrap:pretty}
+.shub .shub-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border-radius:var(--r);font-weight:600;cursor:pointer;border:1px solid var(--bd2);color:var(--tx2);text-align:center;white-space:nowrap;transition:background-color 120ms var(--ease),border-color 120ms var(--ease),transform 120ms var(--ease)}
 .shub .shub-btn:hover{background:var(--bg);color:var(--tx)}
 .shub .shub-btn.shub-primary{background:var(--ac);border-color:var(--ac);color:var(--act)}
 .shub .shub-btn.shub-primary:hover{filter:brightness(1.12)}
+/* Pressed: a step darker and a touch smaller, as the family's buttons are. */
+.shub .shub-btn:active:not(:disabled){background:var(--bg2);transform:scale(.97)}
+.shub .shub-btn.shub-primary:active:not(:disabled){background:var(--ac);filter:brightness(.94)}
 .shub .shub-btn:disabled{cursor:default;color:var(--tx3);background:transparent;border-color:var(--bd);border-style:dashed;filter:none}
-.shub .shub-link{justify-self:center;color:var(--tx3);font-size:13px;cursor:pointer;padding:6px 8px;border-radius:var(--r)}
+.shub .shub-link{justify-self:center;display:inline-flex;align-items:center;min-height:36px;padding:0 8px;color:var(--tx3);font-size:13px;cursor:pointer;border-radius:var(--r)}
 .shub .shub-link:hover{color:var(--tx)}
 .shub .shub-link:disabled{cursor:default;opacity:.6}
 .shub .shub-acts{display:flex;flex-wrap:wrap;gap:8px}
@@ -239,6 +242,9 @@ font-family:var(--font);font-size:14.5px;line-height:1.4;color:var(--tx);color-s
 @keyframes shub-fade{from{opacity:0}}
 @keyframes shub-rise{from{opacity:0;transform:translate(-50%,8px)}}
 @keyframes shub-sheet{from{transform:translateY(100%)}}
+/* A refused value: the field shakes once, as well as turning red and saying why. */
+@keyframes shub-shake{17%{transform:translateX(-10px)}33%{transform:translateX(10px)}50%{transform:translateX(-6px)}67%{transform:translateX(6px)}83%{transform:translateX(-3px)}}
+.shub .shub-shake{animation:shub-shake 360ms cubic-bezier(.77,0,.175,1)}
 
 @media (max-width:699px),(pointer:coarse){
   .shub .shub-input,.shub .shub-btn,.shub .shub-home{height:44px}
@@ -250,7 +256,7 @@ font-family:var(--font);font-size:14.5px;line-height:1.4;color:var(--tx);color-s
   .shub .shub-app{min-height:92px;font-size:14.5px}
 }
 @media (prefers-reduced-motion:reduce){
-  .shub .shub-pop,.shub .shub-sheet-scrim,.shub .shub-toast{animation:none}
+  .shub .shub-pop,.shub .shub-sheet-scrim,.shub .shub-toast,.shub .shub-shake{animation:none}
   .shub .shub-btn{transition:none}
 }
 `;
@@ -353,6 +359,22 @@ export function createImpl() {
     return { input, wrap: h('div', { class: 'shub-reveal-wrap' }, input, show) };
   }
 
+  /** A refused value: shake the field once (the password's box with its Show button). */
+  function shake(input) {
+    const n = input?.closest?.('.shub-reveal-wrap') ?? input;
+    if (!n) return;
+    n.classList.remove('shub-shake');
+    void n.offsetWidth;                // start again if it is still shaking
+    n.classList.add('shub-shake');
+    n.addEventListener('animationend', () => n.classList.remove('shub-shake'), { once: true });
+  }
+  /** A button that is doing what it says: it says so, keeps its width, and cannot be pressed twice. */
+  function working(button, label) {
+    button.style.minWidth = `${button.offsetWidth}px`;
+    button.disabled = true;
+    button.textContent = label;
+  }
+
   function toast(message, { warn = false, ms = 4000 } = {}) {
     mount();
     root.querySelector('.shub-toast')?.remove();
@@ -424,7 +446,7 @@ export function createImpl() {
       const fail = (message, at) => {
         err.textContent = message;
         for (const i of [email, pw.input]) { i.removeAttribute('aria-invalid'); i.removeAttribute('aria-describedby'); }
-        if (at) { at.setAttribute('aria-invalid', 'true'); at.setAttribute('aria-describedby', 'shub-signin-err'); at.focus(); }
+        if (at) { at.setAttribute('aria-invalid', 'true'); at.setAttribute('aria-describedby', 'shub-signin-err'); at.focus(); shake(at); }
       };
       const busy = (on) => { go.disabled = on; go.textContent = on ? 'Signing in…' : 'Sign in'; };
       for (const i of [email, pw.input]) i.addEventListener('input', () => { if (err.textContent) fail(''); });
@@ -457,14 +479,14 @@ export function createImpl() {
       reset.addEventListener('click', async () => {
         const address = email.value.trim();
         if (!address) return fail('Type your email address first.', email);
-        reset.disabled = true;
+        working(reset, 'Sending…');
         fail('');
         try {
           await (await provider()).sendReset(address);
           // Firebase answers the same whether or not the address has a login, so this cannot say "sent".
           note.textContent = `If ${address} has a login, a link to set a password is on its way. It can take a minute, and it may land in junk.`;
           note.hidden = false;
-        } catch (e2) { fail(say(e2)); } finally { reset.disabled = false; }
+        } catch (e2) { fail(say(e2)); } finally { reset.disabled = false; reset.textContent = 'Email me a reset link'; reset.style.minWidth = ''; }
       });
 
       showScreen(screen);
@@ -495,7 +517,7 @@ export function createImpl() {
     } else {
       const home = h('a', { class: 'shub-btn shub-primary', href: new URL('../../', import.meta.url).pathname }, 'Open the hub');
       const out = h('button', { class: 'shub-btn', type: 'button' }, 'Sign out');
-      out.addEventListener('click', async () => { out.disabled = true; await ctx.hub.signOut(); location.reload(); });
+      out.addEventListener('click', async () => { working(out, 'Signing out…'); await ctx.hub.signOut(); location.reload(); });
       acts.append(home, out);
       registry().then((reg) => { home.textContent = `Open ${reg.HUB_NAME}`; }).catch(() => {});
     }
@@ -522,7 +544,7 @@ export function createImpl() {
       const who = h('input', { type: 'email', name: 'username', autocomplete: 'username', value: email, hidden: true });
       const pw = passwordInput('shub-link-pass', 'current-password');
       const err = h('p', { class: 'shub-err', id: 'shub-link-err', role: 'alert' });
-      const go = h('button', { class: 'shub-btn shub-primary', type: 'submit' }, 'Link');
+      const go = h('button', { class: 'shub-btn shub-primary', type: 'submit' }, 'Link login');
       const lost = h('button', { class: 'shub-link', type: 'button' }, "I don't know it");
       const form = h('form', { class: 'shub-form', novalidate: true }, who, field(`${title} password`, pw.wrap, 'shub-link-pass'), err, go, lost);
       const lede = h('p', { class: 'shub-say' }, `Type your current ${title} password once. After that you are signed in to it with this login.`);
@@ -530,16 +552,16 @@ export function createImpl() {
         h('p', { class: 'shub-say' }, `Ask a hub master. They delete your old ${title} login in its Firebase console, then press Check link for you in Accounts.`),
         h('div', { class: 'shub-acts' },
           h('button', { class: 'shub-btn', type: 'button', onclick: () => { help.hidden = true; form.hidden = false; lede.hidden = false; pw.input.focus(); } }, 'Back'),
-          h('button', { class: 'shub-btn', type: 'button', onclick: async () => { await ctx.hub.signOut(); location.reload(); } }, 'Sign out')));
+          h('button', { class: 'shub-btn', type: 'button', onclick: async (e) => { working(e.currentTarget, 'Signing out…'); await ctx.hub.signOut(); location.reload(); } }, 'Sign out')));
       const screen = h('div', { class: 'shub-screen', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'shub-link-title' },
         h('div', { class: 'shub-col' }, mark(), h('div', { class: 'shub-head' }, h('h2', { class: 'shub-title', id: 'shub-link-title' }, `Link your ${title} login`), lede), form, help));
 
       const fail = (message) => {
         err.textContent = message;
-        if (message) { pw.input.setAttribute('aria-invalid', 'true'); pw.input.setAttribute('aria-describedby', 'shub-link-err'); pw.input.focus(); }
+        if (message) { pw.input.setAttribute('aria-invalid', 'true'); pw.input.setAttribute('aria-describedby', 'shub-link-err'); pw.input.focus(); shake(pw.input); }
         else pw.input.removeAttribute('aria-invalid');
       };
-      const busy = (on) => { go.disabled = on; go.textContent = on ? 'Linking…' : 'Link'; };
+      const busy = (on) => { go.disabled = on; go.textContent = on ? 'Linking…' : 'Link login'; };
       pw.input.addEventListener('input', () => { if (err.textContent) fail(''); });
       lost.addEventListener('click', () => { form.hidden = true; lede.hidden = true; help.hidden = false; });
       form.addEventListener('submit', async (e) => {
@@ -603,7 +625,13 @@ export function createImpl() {
         last?.focus?.();
         resolve(changed);
       };
-      const fail = (message, at) => { err.textContent = message; at?.focus(); };
+      const fields = [cur.input, next.input, again.input];
+      const fail = (message, at) => {
+        err.textContent = message;
+        for (const i of fields) { i.removeAttribute('aria-invalid'); if (i !== next.input) i.removeAttribute('aria-describedby'); }
+        if (at) { at.setAttribute('aria-invalid', 'true'); if (at !== next.input) at.setAttribute('aria-describedby', 'shub-pw-err'); at.focus(); shake(at); }
+      };
+      for (const i of fields) i.addEventListener('input', () => i.removeAttribute('aria-invalid'));
       const onKey = (e) => {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(false); }
         if (e.key === 'Tab') {
@@ -620,13 +648,17 @@ export function createImpl() {
         if (next.input.value.length < MIN_PASSWORD) return fail(`The new password needs at least ${MIN_PASSWORD} characters.`, next.input);
         if (next.input.value !== again.input.value) return fail('The two new passwords are not the same.', again.input);
         if (next.input.value === cur.input.value) return fail('That is the current password.', next.input);
-        save.disabled = true;
+        working(save, 'Changing password…');
+        cancel.disabled = true;
         try {
           await (await provider()).changePassword(cur.input.value, next.input.value);
           close(true);
           toast('Password changed. Use the new one from now on.');
         } catch (e2) {
           save.disabled = false;
+          save.textContent = 'Change password';
+          save.style.minWidth = '';
+          cancel.disabled = false;
           fail(say(e2) === 'Wrong email or password.' ? 'The current password is not right.' : say(e2), cur.input);
         }
       });

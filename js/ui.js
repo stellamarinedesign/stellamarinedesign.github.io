@@ -159,6 +159,8 @@ export function menu(anchor, items, { label = 'Actions' } = {}) {
       role: it.checked !== undefined ? 'menuitemradio' : 'menuitem',
       'aria-checked': it.checked !== undefined ? String(Boolean(it.checked)) : null,
       disabled: it.disabled,
+      // Heard as one phrase with its hint ("Remove, not your own"), not run together.
+      'aria-label': it.hint ? `${it.label}, ${String(it.hint).toLowerCase()}` : null,
       onclick: (e) => { e.stopPropagation(); closeMenu(); it.onSelect?.(); },
     },
     it.icon ? icon(it.icon, 16) : (icons ? el('span', { class: 'menu-gap' }) : null),
@@ -177,6 +179,8 @@ export function menu(anchor, items, { label = 'Actions' } = {}) {
   if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 4);
   node.style.left = `${left}px`;
   node.style.top = `${top}px`;
+  // It grows from the button that opened it: above it or below it.
+  node.style.transformOrigin = `${Math.round(r.left + r.width / 2 - left)}px ${top < r.top ? '100%' : '0'}`;
   anchor.setAttribute('aria-expanded', 'true');
 
   const onKey = (e) => {
@@ -192,6 +196,25 @@ export function menu(anchor, items, { label = 'Actions' } = {}) {
   openMenu = { node, anchor, onKey, onDown };
   (buttons.find((b) => !b.disabled))?.focus();
   return node;
+}
+
+/** A refused value: shake the field once (a password's box with its Show button). */
+export function shake(input) {
+  const n = input?.closest?.('.reveal-wrap') ?? input;
+  if (!n) return;
+  n.classList.remove('shake');
+  void n.offsetWidth;                  // start again if it is still shaking
+  n.classList.add('shake');
+  n.addEventListener('animationend', () => n.classList.remove('shake'), { once: true });
+}
+
+/** A button that is doing what it says: it says so, keeps its width, and cannot be pressed twice. */
+export function working(button, label) {
+  const was = button.textContent;
+  button.style.minWidth = `${button.offsetWidth}px`;
+  button.disabled = true;
+  button.textContent = label;
+  return () => { button.disabled = false; button.textContent = was; button.style.minWidth = ''; };
 }
 
 /** Per-device view settings: localStorage, never data. */

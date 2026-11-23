@@ -4,7 +4,7 @@
 // collection, which nobody can edit or delete (firestore.rules). Read here
 // fifty at a time: each entry is one document read.
 
-import { el, whenText } from '../ui.js';
+import { el, whenText, working } from '../ui.js';
 import { friendly, kindOf } from '../errors.js';
 
 const PAGE = 50;
@@ -38,6 +38,6 @@ export async function render(view, ctx, count = PAGE) {
     el('span', { class: 'what' }, e.text ?? '')))));
   if (entries.length >= count) {
     view.append(el('p', { style: { 'margin-top': 'var(--sp-4)' } },
-      el('button', { class: 'btn small', type: 'button', onclick: () => render(view, ctx, count + PAGE) }, 'Show older')));
+      el('button', { class: 'btn small', type: 'button', onclick: (e) => { working(e.currentTarget, 'Loading…'); render(view, ctx, count + PAGE); } }, 'Show older')));
   }
 }

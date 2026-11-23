@@ -55,6 +55,56 @@ function nameDrift() {
   return out;
 }
 
+/**
+ * The Stella internal-apps rules (the stella-internal-ux skill) that code can
+ * be checked against, over everything the site serves. Motion: only named
+ * properties, no layout properties, no ease-in entrance, nothing from
+ * scale(0), nothing endless, nothing anyone waits on over 300ms (the one
+ * exception is the refused-field shake, about 360ms), and a reduced-motion
+ * rule wherever something moves. Words: no button that only says OK, Done,
+ * Submit, Confirm or Apply.
+ */
+function uxRules() {
+  const out = [];
+  const served = [...files(ROOT)].filter((p) => {
+    const rel = relative(ROOT, p).replace(/\\/g, '/');
+    return /\.(css|html|js)$/.test(rel) && !/^(tests|tools)\//.test(rel);
+  });
+  const tokens = {};
+  for (const m of readFileSync(join(ROOT, 'css', 'style.css'), 'utf8').matchAll(/(--dur[\w-]*):\s*(\d+)ms/g)) tokens[m[1]] = Number(m[2]);
+  for (const path of served) {
+    const rel = relative(ROOT, path).replace(/\\/g, '/');
+    const text = readFileSync(path, 'utf8');
+    const lines = text.split('\n');
+    lines.forEach((line, i) => {
+      const at = `${rel}:${i + 1}`;
+      if (/transition:\s*all\b/.test(line)) out.push(`${at}: transition: all (name the properties)`);
+      if (/scale\(0\)/.test(line)) out.push(`${at}: scale(0) (start from .95 to .97)`);
+      if (/ease-in(?!-out)\b/.test(line)) out.push(`${at}: ease-in (ease-out for what arrives)`);
+      if (/\binfinite\b/.test(line)) out.push(`${at}: an endless animation (only while something is really in progress)`);
+      for (const decl of line.match(/(?:transition|animation):[^;}"`]*/g) ?? []) {
+        if (/\b(top|right|bottom|left|width|height)\b/.test(decl)) out.push(`${at}: animates a layout property (${decl.trim()})`);
+        const waits = decl.split(',').filter((part) => !/shake/.test(part));
+        for (const part of waits) {
+          const ms = [...part.matchAll(/(\d+)ms/g)].map((m) => Number(m[1]));
+          const viaToken = [...part.matchAll(/var\((--dur[\w-]*)\)/g)].map((m) => tokens[m[1]] ?? 0);
+          // A delay is the second time in a part; the first is how long it runs.
+          const runs = [...ms, ...viaToken][0];
+          if (runs > 300) out.push(`${at}: runs ${runs}ms (nothing anyone waits on runs over 300ms)`);
+        }
+      }
+    });
+    if (/\b(transition|animation)\s*:/.test(text) && !/prefers-reduced-motion/.test(text)) out.push(`${rel}: moves, with no reduced-motion rule`);
+    if (/^(js|core)\//.test(rel)) {
+      for (const m of text.matchAll(/['"](OK|Ok|Done|Submit|Confirm|Apply)['"]/g)) {
+        out.push(`${rel}: a button that only says "${m[1]}" (say what it does)`);
+      }
+    }
+  }
+  for (const [name, ms] of Object.entries(tokens)) if (ms > 300) out.push(`css/style.css: ${name} is ${ms}ms`);
+  return out;
+}
+
 const results = await run();
 const stray = addressesInRepo();
 results.push({
@@ -69,6 +119,14 @@ results.push({
   name: 'the hub has one name, everywhere it is written',
   pass: drift.length === 0,
   detail: drift.join('\n'),
+});
+
+const ux = uxRules();
+results.push({
+  group: 'the repository',
+  name: 'motion and button words keep to the Stella internal-apps rules',
+  pass: ux.length === 0,
+  detail: ux.join('\n'),
 });
 
 let group = '';

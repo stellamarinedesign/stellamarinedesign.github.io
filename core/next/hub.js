@@ -43,7 +43,7 @@
 //                (typing their old password for the app once) did not take
 //   unreachable  the hub could not be reached; `legacy` was called if given
 
-const BUILD = '2026-11-19.1';
+const BUILD = '2026-11-23.3';
 const CHANNEL = 'next';
 const NOTE = 'stella.hub.session';
 const CHANNEL_KEY = 'stella.hub.channel';
@@ -88,6 +88,7 @@ const SWITCHER_CSS = '.shub-sw{all:unset;box-sizing:border-box;display:inline-fl
   // The host page's own focus colour where it has one (every Stella app does), so the ring follows its theme.
   + '.shub-sw:focus-visible{outline:2px solid var(--focus,#ea372e);outline-offset:2px}'
   + '.shub-sw[aria-expanded="true"]{background:rgba(127,127,127,.3)}'
+  + '.shub-sw:active{transform:scale(.97)}'
   + '@media (pointer:coarse){.shub-sw{width:44px;height:44px}}';
 const GRID_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false">'
   + [5, 12, 19].map((y) => [5, 12, 19].map((x) => `<circle cx="${x}" cy="${y}" r="1.9"/>`).join('')).join('') + '</svg>';

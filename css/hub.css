@@ -58,9 +58,12 @@ input, textarea { caret-color: var(--focus); }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); height: 36px; padding: 0 14px;
        border: 1px solid var(--border2); border-radius: var(--radius); background: transparent; color: var(--text2);
        font-weight: 600; white-space: nowrap; text-decoration: none;
-       transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+       transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
+                   transform var(--dur-fast) var(--ease-out); }
 .btn:hover { background: var(--bg); color: var(--text); }
 .btn:active { background: var(--bg2); }
+/* Pressed: a touch smaller, as the family's buttons are (design scheduling). */
+.btn:active:not(:disabled), .ib:active:not(:disabled), .seg-btn:active { transform: scale(.97); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 .btn.primary:hover { filter: brightness(1.12); }
 .btn.primary:active { filter: brightness(.94); }
@@ -162,6 +165,9 @@ a.line:hover { background: var(--bg); }
 /* ── Pages for a hub master ───────────────────────────────────────── */
 .page-head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-4); }
 .h1 { font-family: var(--font-head); font-weight: 700; font-size: var(--fs-lg); line-height: 1.25; }
+/* Headings break evenly; sentences never leave one word on a line of its own. */
+.h1, .h2, .box h3, .t-name { text-wrap: balance; }
+.lede, .hint, .state-msg p, .empty, .callout-text, .t-quiet, .mode-note > span:first-child { text-wrap: pretty; }
 .h2 { font-family: var(--font-head); font-weight: 700; font-size: var(--fs-md); line-height: 1.3; margin: var(--sp-6) 0 var(--sp-2); }
 .callout { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: 12px 14px; margin-bottom: var(--sp-4);
            border-radius: var(--radius-lg); background: var(--bg); border: 1px solid var(--border); }
@@ -249,7 +255,7 @@ a.line:hover { background: var(--bg); }
 
 /* ── Menu and toast: the only things that float ───────────────────── */
 .menu { position: fixed; z-index: 60; min-width: 200px; max-width: min(320px, calc(100vw - 16px)); padding: 4px; background: var(--panel-bg);
-        border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-panel); animation: rise var(--dur-fast) var(--ease-out); }
+        border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-panel); animation: pop var(--dur-fast) var(--ease-out); }
 .menu-item { display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-height: 36px; padding: 0 10px; border: 0; border-radius: 6px;
              background: transparent; color: var(--text2); text-align: left; }
 .menu-item:hover, .menu-item:focus-visible { background: var(--bg); color: var(--text); outline: none; }
@@ -269,6 +275,14 @@ a.line:hover { background: var(--bg); }
 .toast.warn { background: var(--toast-warn-bg); }
 
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+/* A menu grows from the button that opened it (js/ui.js sets the origin). */
+@keyframes pop { from { opacity: 0; transform: scale(.97); } }
+/* A refused value: the field shakes once, as well as turning red and saying why (js/ui.js, shake). */
+@keyframes shake { 17% { transform: translateX(-10px); } 33% { transform: translateX(10px); } 50% { transform: translateX(-6px); }
+                   67% { transform: translateX(6px); } 83% { transform: translateX(-3px); } }
+.shake { animation: shake 360ms var(--ease-in-out); }
+/* While the theme changes, nothing fades: every colour changes at once (js/app.js, setTheme). */
+.theme-switching, .theme-switching * { transition: none !important; }
 
 /* ── Width bands: phone under 700, desk from 1100 ─────────────────── */
 @media (min-width: 1100px) {
@@ -307,7 +321,7 @@ a.line:hover { background: var(--bg); }
   .chip-btn::after { content: ""; position: absolute; inset: -11px -4px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .box, .menu { animation: none; }
+  .box, .menu, .shake { animation: none; }
   .toast, .grid-shell.busy .grid-wrap { transition: none; }
 }
 

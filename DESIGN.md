@@ -605,6 +605,9 @@ face. A line's title, a button, a tab and a label are never set in Friz.
 **The Tabular Numbers Rule.** Dates, ages and counts use tabular figures, so a column of them
 lines up and does not jitter as it changes.
 
+**The Even Lines Rule.** Headings and titles break into even lines (`text-wrap: balance`), and
+sentences never leave one word on a line of its own (`text-wrap: pretty`).
+
 **The 16px Field Rule.** On phones and touch screens a field's text is 16px, so iOS never zooms
 the page on focus. The core's fields are 16px at every width, because the core cannot know the
 page it is drawn in.
@@ -724,6 +727,12 @@ Quiet and exact: outlined by default, one filled button at most.
   label when there is one. 44px tall on phones and touch screens.
 - **Primary:** Upsdell Red fill and edge, White body-strong label. One in a view or dialog.
   Hover brightens it (1.12) and a press dims it (.94).
+- **Press:** every button and icon button shrinks to 97% while it is pressed, as the family's
+  do (design scheduling). It is feedback, not decoration.
+- **Label:** says what pressing it does, a verb and its object ("Add person", "Save name",
+  "Finish editing", "Hide password"). Never a bare OK, Done, Submit, Confirm or Apply.
+- **Working:** while a button's step runs, it says what it is doing ("Signing in…",
+  "Adding…", "Changing password…", "Saving…"), keeps its width, and cannot be pressed again.
 - **Secondary (the default):** transparent, a 1px Strong Rule outline, Ash label at 600. Hover
   fills it with Band and turns the label White; a press takes Chip Grey.
 - **Ghost:** no outline, Muted Ash label at 400, 10px of side padding. It is in the stylesheet
@@ -740,7 +749,8 @@ Quiet and exact: outlined by default, one filled button at most.
   Hover fills it with Chip Grey. In the header it takes the header's text colour; in the grid
   it is Muted Ash and turns White on hover. 44px square on touch.
 - **Inside a callout** a button takes the callout's own text colour for its outline and label.
-- **Motion:** fill, outline and label colour change over 120ms on the family ease-out.
+- **Motion:** fill, outline and label colour change over 120ms on the family ease-out, and
+  so does the press.
 
 ### Chips
 
@@ -753,7 +763,8 @@ Quiet and exact: outlined by default, one filled button at most.
   the word is the only thing to press ("Linked", which opens that link's menu). On hover or
   while its menu is open the text turns White and the edge Muted Ash.
 - **Count bubble:** a pill at least 18px wide beside a label, 1px by 6px of padding, the number
-  centred in count type. In Workshop it also has a 1px edge in its own colour.
+  centred in count type, never more than "99+" (a screen reader still hears the real count).
+  In Workshop it also has a 1px edge in its own colour.
 
 **Open question for the owner: the count bubble's colours.** The count is drawn with two family
 tokens (`--count-bg` and `--count-text`), and the hub changes neither. In the dark theme that
@@ -788,9 +799,11 @@ neither the dark pairing nor the added edge is a pattern for new components.
   the focus colour.
 - **Error:** the reason is said under the fields in meta, in the red text colour (never the
   link colour, which is blue in Workshop), and the field it is about takes focus. The error
-  line keeps 18px of room when empty, so the form does not jump. On the sign-in screen and in
-  the hub page's own dialogs the field is also marked invalid, and its edge turns the same
-  red until it is typed in again.
+  line keeps 18px of room when empty, so the form does not jump. On the sign-in screen, the
+  link screen, the core's password dialog and the hub page's own dialogs the field is also
+  marked invalid, and its edge turns the same red until it is typed in again. It also shakes
+  once, sideways, over about 360ms (not with reduced motion): a password field shakes with its
+  Show button.
 - **Disabled:** Muted Ash text and a dashed edge.
 - **Password fields** carry their own Show and Hide button inside the field at the right: a
   28px text button in Muted Ash with a 6px corner. On touch it takes the field's full height.
@@ -852,8 +865,9 @@ Reached from the cog (Edit tiles). The same grid of tiles, drawn without their f
 - **Bar** above the tiles: a two-way segmented choice, **All my devices** / **This device
   only** (a Band track with a 1px Strong Rule edge; the pressed half is Shadow Grey with an
   inset Strong Rule line and White text; 32px tall, 44px on touch); **Use my usual tiles here**
-  as a small button when this device has its own arrangement; and **Done**, the one primary
-  button, at the right.
+  as a small button when this device has its own arrangement; and **Finish editing**, the one
+  primary button, at the right. Each change is sent as it is made, so the button only waits
+  for the last one ("Saving…") and goes back to the front page.
 - **Each tile:** its head (icon, name), then a row under a Rule Grey line: move earlier and
   move later as icon buttons (chevrons, disabled at the ends), and **Hide** / **Show** as a
   small button at the right.
@@ -924,8 +938,9 @@ small "Show older" button follows a full page.
 - **Parts, in order:** a title in title type, a sentence in Ash, fields, the error line, then
   the actions with the main one first and Cancel last, 8px apart.
 - **Behaviour:** Enter saves and Esc cancels. Focus stays inside and goes back to what opened
-  the dialog. A destructive confirm uses the outlined danger button and starts with focus on
-  Cancel. A dialog that holds typed input closes only on purpose, never on a click outside it,
+  the dialog. A destructive confirm uses the outlined danger button, names what each button
+  does ("Remove login" and "Keep login", "Hand back" and "Keep it linked", "Discard changes"
+  and "Keep editing"), and starts with focus on the one that keeps. A dialog that holds typed input closes only on purpose, never on a click outside it,
   and asks before throwing typing away.
 
 ### Menu
@@ -935,7 +950,8 @@ small "Show older" button follows a full page.
   the floating shadow.
 - **Item:** 36px tall (44px on touch) with 10px of side padding and a 6px corner, in Ash. Hover
   and focus fill it with Band and turn it White. A destructive item is Link Coral, and a
-  disabled one is Muted Ash. An item may have a 16px icon in front (the others then hold its
+  disabled one is Muted Ash with a hint at the right that says why ("Not your own", "None
+  linked"). An item may have a 16px icon in front (the others then hold its
   place), or a tick at the right when it is the chosen one.
 - **Heading:** plain Muted Ash meta, not capitals, because a heading here is usually an
   address. Separators are 1px Rule Grey.
@@ -978,7 +994,7 @@ core's copy). The core reads the host page's theme each time it draws and wears 
   The way on is the primary button, and Sign out is secondary.
 - **Link your <app> login:** the sign-in screen's ground and column. The mark, then a centred
   head (the heading in headline type, one sentence in Ash), then one password field labelled
-  "<App> password" with its Show button, the error line, a full-width primary **Link**, and a
+  "<App> password" with its Show button, the error line, a full-width primary **Link login**, and a
   quiet "I don't know it" text button. That swaps the field for a sentence and two buttons
   (Back, Sign out). Shown when an app refuses the person's key: their login there is from
   before the hub, or a reset email changed it.
@@ -1016,12 +1032,16 @@ core's copy). The core reads the host page's theme each time it draws and wears 
 
 Only things that arrive move, and they move once.
 
-- A dialog on the hub's page rises 6px and fades in over 200ms. A menu does the same over
-  120ms. The core's change-password box simply appears.
+- A dialog on the hub's page rises 6px and fades in over 200ms. A menu grows from 97% at the
+  button that opened it and fades in over 120ms, as design scheduling's do. The core's
+  change-password box simply appears.
 - A toast rises 8px and fades in over 200ms.
 - The app switcher grows from 96% and fades in over 150ms, from the point under its button. As
   a sheet it slides up over 260ms while its scrim fades in over 200ms.
-- A button changes colour over 120ms.
+- A button changes colour over 120ms, and shrinks to 97% while pressed.
+- A refused field shakes once over about 360ms, the one thing allowed past 300ms, because
+  nobody waits on it.
+- While the theme changes, nothing fades: every colour changes at once.
 - All of it is on the family ease-out, `cubic-bezier(.23, 1, .32, 1)`.
 
 Nothing animates on load. A tile does not move when its card arrives, a skeleton does not
@@ -1050,6 +1070,10 @@ runs.
 - **Do** say what failed in the heading of an error, and offer one way on.
 - **Do** draw an icon as a 1.8 stroke on a 24 grid in the text colour.
 - **Do** write in plain Australian English.
+- **Do** keep to the Stella internal-apps rules (the `stella-internal-ux` skill) on every new
+  screen and every app's hub patch. `node tests/node.mjs` checks the ones code can be checked
+  for: motion (named properties, nothing over 300ms that anyone waits on, a reduced-motion rule
+  wherever something moves) and button words (no bare OK, Done, Submit, Confirm or Apply).
 
 ### Don't:
 

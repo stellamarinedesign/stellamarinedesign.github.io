@@ -9,7 +9,9 @@
 // the owner lost a half-typed Settings change to a stray click) - closes only
 // on purpose: its Close or Cancel button, or Esc, never a click outside it.
 // And when something has been typed and not saved, those ask "Discard
-// changes?" first, with Cancel as the default.
+// changes?" first, with Keep editing as the default.
+
+import { shake } from './ui.js';
 
 /**
  * Close a dialog when its backdrop is CLICKED: pressed and released there.
@@ -98,7 +100,7 @@ export function openDialog(build, { label = '', wide = false, className = '', gu
       if (done || asking) return;
       if (guard && dirty()) {
         asking = true;
-        const discard = await confirmDialog({ title: 'Discard changes?', body: 'What you typed here has not been saved.', ok: 'Discard', destructive: true });
+        const discard = await confirmDialog({ title: 'Discard changes?', body: 'What you typed here has not been saved.', ok: 'Discard changes', cancel: 'Keep editing', destructive: true });
         asking = false;
         if (!discard) return;
       }
@@ -131,10 +133,13 @@ function trapTab(e, box) {
 }
 
 /**
- * Yes or no. A destructive confirm starts with focus on Cancel.
+ * Yes or no. A destructive confirm starts with focus on Cancel. `ok` is
+ * required, and says what pressing it does ("Remove login", not a bare OK); a
+ * destructive confirm also names what Cancel keeps ("Keep login").
  * @returns {Promise<boolean>}
  */
-export async function confirmDialog({ title, body = '', ok = 'OK', cancel = 'Cancel', destructive = false, alt = null }) {
+export async function confirmDialog({ title, body = '', ok, cancel = 'Cancel', destructive = false, alt = null }) {
+  if (!ok) throw new Error('confirmDialog: say what the button does (ok)');
   const v = await openDialog((box, close) => {
     box.append(el('h3', null, title));
     if (body) box.append(el('p', 'lede', body));
@@ -189,9 +194,10 @@ export function promptDialog({ title, label = '', value = '', placeholder = '', 
     box.append(acts);
     const submit = () => {
       const v = input.value.trim();
-      if (required && !v) { err.textContent = 'This cannot be empty.'; input.focus(); return; }
+      const refuse = (message) => { err.textContent = message; input.setAttribute('aria-invalid', 'true'); input.focus(); shake(input); };
+      if (required && !v) return refuse('This cannot be empty.');
       const problem = validate?.(v);
-      if (problem) { err.textContent = problem; input.focus(); return; }
+      if (problem) return refuse(problem);
       close(v);
     };
     yes.addEventListener('click', submit);
@@ -199,6 +205,7 @@ export function promptDialog({ title, label = '', value = '', placeholder = '', 
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && (!multiline || e.ctrlKey || e.metaKey)) { e.preventDefault(); submit(); }
     });
+    input.addEventListener('input', () => input.removeAttribute('aria-invalid'));
     queueMicrotask(() => { input.select?.(); });
   }, { label: title, guard: true });
 }

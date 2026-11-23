@@ -35,9 +35,13 @@ const store = {
 };
 
 function setTheme(name) {
-  if (name === 'workshop') document.documentElement.dataset.theme = 'workshop';
-  else delete document.documentElement.dataset.theme;
+  // Every colour changes at once: no button fading over on its own (css/hub.css, .theme-switching).
+  const root = document.documentElement;
+  root.classList.add('theme-switching');
+  if (name === 'workshop') root.dataset.theme = 'workshop';
+  else delete root.dataset.theme;
   store.set(THEME_KEY, name === 'workshop' ? 'workshop' : null);
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('theme-switching')));
 }
 
 /** Something stopped the page before it could draw: say what, and offer the one thing that helps. */
