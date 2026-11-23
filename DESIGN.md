@@ -1048,6 +1048,20 @@ Nothing animates on load. A tile does not move when its card arrives, a skeleton
 shimmer, and hover is a change of colour. With reduced motion asked for, none of the above
 runs.
 
+## Where the hub keeps its own sizes (owner, 23 Nov 2026)
+
+Audited against the Stella internal-apps rules (the `stella-internal-ux` skill) on 23 Nov.
+Four places differ from that skill on purpose, and the owner chose to keep them:
+
+- **Touch targets stay 44px**, the core's sign-in and link screens included, though kiosk
+  iPads see them: each is met once per device, not in floor work.
+- **The Accounts grid scrolls sideways on a phone** inside its own frame. It is a desk screen,
+  used rarely.
+- **The floating shadow stays one layer** (`--shadow-panel`). It is a family token, so a change
+  would be for every Stella app at once.
+- **Small controls on a desk stay under 36px**: small buttons and grid icons at 28px, the chip
+  buttons at 22px, the device choice at 32px. Every one of them is 44px on touch.
+
 ## Do's and Don'ts
 
 ### Do:

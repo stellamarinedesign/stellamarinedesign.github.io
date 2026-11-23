@@ -142,7 +142,8 @@ export const PROJECTS = {
     group: 'Design',
     icon: 'pencil',
     stage: 'live',
-    joined: false,
+    // Joined 23 Nov 2026: its site signs in through the hub from v2026-11-23.3.
+    joined: true,
     home: { default: '/design-scheduling/' },
     pages: [],
     config: {
