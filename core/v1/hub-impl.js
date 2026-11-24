@@ -689,7 +689,12 @@ export function createImpl() {
     if (popover) { closeSwitcher(); return; }
     const n = ctx.note();
     if (n.kind !== 'user') return;
-    const [reg, p] = await Promise.all([registry(), provider().catch(() => null)]);
+    // From the note and the registry alone. The hub's sign-in is needed only in
+    // the demo, which has its own list of joined apps: starting Firebase re-checks
+    // the login with Google, and the menu used to wait half a second for that on
+    // the first press of every page (25 Nov).
+    const [reg, p] = await Promise.all([registry(), HUB_CONFIG.apiKey ? null : provider().catch(() => null)]);
+    if (popover) return;               // pressed twice while the menu's code was loading
     const tiles = reg.tilesFor(n.apps, { master: n.master, current, joined: p?.joined() ?? null, demo: Boolean(p?.demo) });
     mount();
 
@@ -755,6 +760,8 @@ export function createImpl() {
     linkScreen,
     closeScreens,
     openSwitcher,
+    /** Fetch what the switcher draws from, ahead of the first press. Never the sign-in. */
+    warm: () => registry().then(() => {}, () => {}),
     toast,
     /** For the hub page: the sign-in behind all this, the registry, and whether this is the demo. */
     provider,

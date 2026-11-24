@@ -741,6 +741,28 @@ export async function run() {
     expect(cell.role, 'floor');
     ok(cell.stale);
   });
+  await test('a master handed back, who then left a Link unfinished, can still link themselves', async () => {
+    // 25 Nov, the ordering test: Link saves a key before it asks for the password,
+    // so closing the box left a key the app refuses, and no way back in.
+    const { w, boss, hub, app, fill } = setup();
+    const me = () => hub.getPerson(boss);
+    const gridFor = async (error) => buildGrid({ projects: PROJECTS, joined: { [DESIGN]: true }, people: [await me()], access: { [DESIGN]: { error } }, me: { uid: boss, email: BOSS } });
+    addAppLogin(w, DESIGN, BOSS, 'own-pw');
+    await L.takeOver({ hub, app: app(DESIGN), person: await me(), currentPassword: 'own-pw', fill, model: design });
+    const { temp } = await L.handBack({ hub, app: app(DESIGN), person: await me(), fill });
+    ok((await gridFor('not-linked')).rows[0].cells[DESIGN].canLink, 'handed back: Link is there');
+    expect((await L.ensureLink({ hub, app: app(DESIGN), person: await me(), fill, model: design })).status, 'legacy');
+    ok(await hub.getKey(boss, DESIGN), 'and the key is saved, though nothing answers to it');
+    const grid = await gridFor('credential');
+    ok(grid.rows[0].cells[DESIGN].canLink, 'Link is still there');
+    expect(grid.columns.find((c) => c.pid === DESIGN).problem, 'not-linked', 'and the column says to link yourself');
+    // Linking then works, with the password it has now.
+    await L.takeOver({ hub, app: app(DESIGN), person: await me(), currentPassword: temp, fill, model: design });
+    expect((await me()).links[DESIGN].role, 'lead');
+    // A link the hub DOES hold, refused, is still one to check.
+    const held = await gridFor('credential');
+    expect([held.columns.find((c) => c.pid === DESIGN).problem, held.rows[0].cells[DESIGN].canLink], ['credential', false]);
+  });
   await test('which apps a login has: a role where the app has joined, a tick where it has not', () => {
     const { w, people } = demoGrid();
     const links = (email) => people.find((p) => p.email === email).links;

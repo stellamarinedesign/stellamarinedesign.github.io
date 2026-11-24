@@ -31,6 +31,12 @@ import { roleOf, isMaster, rows as accessRows, normalise } from './access.js';
  */
 export function buildGrid({ projects, joined, people, access, me }) {
   const myEmail = tidyEmail(me?.email);
+  const mine = people.find((p) => tidyEmail(p.email) === myEmail);
+  // Why a column cannot be read. A key the app refuses, on a login the hub does
+  // not hold (handed back, and then a Link that was not finished: the key is
+  // saved first, linking.js), means the acting master is NOT LINKED there. It is
+  // not a link to check: their cell has none.
+  const unread = (pid, got) => (got?.error === 'credential' && !mine?.links?.[pid]?.linked ? 'not-linked' : (got?.error ?? 'loading'));
   const columns = Object.entries(projects).map(([pid, p]) => {
     const got = access?.[pid];
     const kind = !joined?.[pid] ? 'plain' : (p.access?.fixed ? 'fixed' : 'roles');
@@ -44,7 +50,7 @@ export function buildGrid({ projects, joined, people, access, me }) {
       roles: kind === 'roles' ? p.access.roles.map((r) => ({ id: r.id, label: r.label })) : [],
       // The acting master can change this app's lists only as a master THERE.
       canEdit: kind === 'roles' && Boolean(doc) && isMaster(p.access, doc, myEmail),
-      problem: kind === 'roles' && !doc ? (got?.error ?? 'loading') : null,
+      problem: kind === 'roles' && !doc ? unread(pid, got) : null,
       masters: kind === 'roles' && doc ? normalise(p.access, doc).masters : [],
     };
   });

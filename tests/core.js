@@ -75,6 +75,7 @@ function fakeImpl(o = {}) {
     card(kind, info) { i.cards.push({ kind, title: info?.title }); },
     closeScreens() { i.closed += 1; },
     openSwitcher(button, info) { i.calls.push(`switcher:${info.current}`); },
+    async warm() { i.calls.push('warm'); },
     async passwordDialog() { i.calls.push('password'); },
   };
   return i;
@@ -369,6 +370,22 @@ export async function coreTests({ test, expect, ok, setGroup }) {
     expect(slot.children[0].attrs['aria-label'], 'Apps');
     await slot.children[0].listeners.click();
     expect(impl.calls, ['switcher:a']);
+  });
+  await test('its code is fetched once, when the page is idle, and the sign-in is left alone', async () => {
+    const impl = fakeImpl();
+    const env = setupEnv({ note: userNote({ apps: { a: 'manager', b: 'floor' } }), impl });
+    const hub = makeHub(env);
+    hub.switcher(slotOf(env), { current: 'a' });
+    expect(impl.calls, [], 'nothing before the page is idle');
+    hub.switcher(slotOf(env), { current: 'a' });
+    await env.runIdle();
+    expect(impl.calls, ['warm'], 'once, and nothing else');
+    // One app, or nobody: no button, so nothing is fetched.
+    const quiet = fakeImpl();
+    const one = setupEnv({ note: userNote({ apps: { a: 'floor' } }), impl: quiet });
+    makeHub(one).switcher(slotOf(one));
+    await one.runIdle();
+    expect(quiet.calls, []);
   });
   await test('not drawn for one app, for nobody, or when signed out', () => {
     for (const note of [userNote({ apps: { a: 'floor' } }), null, outNote()]) {
