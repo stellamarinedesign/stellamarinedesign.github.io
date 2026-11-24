@@ -503,9 +503,8 @@ export async function run() {
     ok(!(await again(p)).links[ORDERING_TEST]);
   });
   await test("linking notes the role the app's own list already gives, at once", async () => {
-    // 23 Nov: a master with a tile tick linked their own login, already the
-    // Design lead there, and the app left their front page and switcher
-    // until the next Accounts load caught the copy up.
+    // A master with a tile tick links their own login, already the Design
+    // lead there: the tick holds no role to carry over.
     const { w, boss, hub, app, add, again } = setup();
     addAppLogin(w, DESIGN, BOSS, 'their-old-pw');
     await L.setPlain({ hub, person: await hub.getPerson(boss), projectId: DESIGN, on: true });
@@ -693,7 +692,7 @@ export async function run() {
     const grid = buildGrid({ projects: PROJECTS, joined: { [BOARD]: true }, people, access: { [BOARD]: { doc } }, me: { uid: 'u-boss', email: 'boss@example.test' } });
     expect(staleLinks(grid), [{ uid: 'u-ann', pid: BOARD, role: 'engineer' }, { uid: 'u-boss', pid: BOARD, role: 'manager' }]);
     // Once written back, the master has the app as theirs: a tile, and the switcher.
-    expect(appsFromLinks({ [BOARD]: { linked: true, role: 'manager' } }, PROJECTS, { [BOARD]: true }), { [BOARD]: 'manager' });
+    expect(appsFromLinks({ [BOARD]: { linked: true, role: 'manager' } }), { [BOARD]: 'manager' });
     // Taken off the app's list inside the app: the copy follows to none.
     const grid2 = buildGrid({ projects: PROJECTS, joined: { [BOARD]: true }, people: [{ uid: 'u-ann', email: 'ann@example.test', links: { [BOARD]: { linked: true, role: 'engineer' } } }], access: { [BOARD]: { doc: { ...doc, engineers: [] } } }, me: { uid: 'x', email: 'boss@example.test' } });
     expect(staleLinks(grid2), [{ uid: 'u-ann', pid: BOARD, role: null }]);
@@ -706,7 +705,7 @@ export async function run() {
     const cell = grid.rows.find((r) => r.uid === 'u-ann').cells[BOARD];
     expect([cell.state, cell.waiting, cell.linked, cell.canLink], ['waiting', true, false, false]);
     expect(looseCount(grid), 0, 'nothing for the master to do');
-    expect(appsFromLinks(people[0].links, PROJECTS, { [BOARD]: true }), { [BOARD]: 'floor' }, 'a tile, and opening it is how she links it');
+    expect(appsFromLinks(people[0].links), { [BOARD]: 'floor' }, 'a tile, and opening it is how she links it');
     expect(claimedLinks(grid, {}), []);
     expect(claimedLinks(grid, { 'u-ann': { linked: { [BOARD]: '2026-11-19T00:00:00Z' } } }), [{ uid: 'u-ann', pid: BOARD }], 'she says she has: the screen checks it');
   });
@@ -745,18 +744,17 @@ export async function run() {
   await test('which apps a login has: a role where the app has joined, a tick where it has not', () => {
     const { w, people } = demoGrid();
     const links = (email) => people.find((p) => p.email === email).links;
-    expect(appsFromLinks(links('alex@example.test'), PROJECTS, w.joined), {
+    expect(appsFromLinks(links('alex@example.test')), {
       [BOARD]: 'manager', [ORDERING]: 'manager', [DESIGN]: 'lead', [DRAWINGS]: 'link', [ORDERING_TEST]: 'link',
     });
-    expect(appsFromLinks(links('pat@example.test'), PROJECTS, w.joined), {}, 'linked with no role is not an app you have');
-    expect(appsFromLinks(links('jordan@example.test'), PROJECTS, w.joined), {});
+    expect(appsFromLinks(links('pat@example.test')), {}, 'linked with no role is not an app you have');
+    expect(appsFromLinks(links('jordan@example.test')), {});
   });
   await test('a tile tick outlives the day the app joins, until the person is linked', () => {
     const before = { [BOARD]: false };
     const after = { [BOARD]: true };
     const ticked = { [BOARD]: { plain: true, at: 't', by: 'u' } };
-    expect(appsFromLinks(ticked, PROJECTS, before), { [BOARD]: 'link' });
-    expect(appsFromLinks(ticked, PROJECTS, after), { [BOARD]: 'link' }, 'still there once the app has joined');
+    expect(appsFromLinks(ticked), { [BOARD]: 'link' }, 'whether or not the app has joined');
     // Their tile still says the app has its own sign-in, and asks for no card.
     const mine = tilesFor({ [BOARD]: 'link' }, { joined: after })[0];
     ok(mine.joined && mine.own, 'joined app, own sign-in for this person');
@@ -764,13 +762,24 @@ export async function run() {
     ok(tilesFor({ [BOARD]: 'floor' }, { joined: before })[0].own, 'an app that has not joined is everybody\'s own sign-in');
     ok(!tilesFor({ [DRAWINGS]: 'link' }, { joined: { [DRAWINGS]: true } })[0].own, 'fixed roles: linked is all there is');
     // Linking replaces the tick, and the role is then what counts.
-    expect(appsFromLinks({ [BOARD]: { linked: true, role: null } }, PROJECTS, after), {});
-    expect(appsFromLinks({ [BOARD]: { linked: true, role: 'floor' } }, PROJECTS, after), { [BOARD]: 'floor' });
+    expect(appsFromLinks({ [BOARD]: { linked: true, role: null } }), {});
+    expect(appsFromLinks({ [BOARD]: { linked: true, role: 'floor' } }), { [BOARD]: 'floor' });
     // The grid shows the standing tick so it can be taken away.
     const people = [{ uid: 'u1', email: 'ann@example.test', name: 'Ann', links: ticked }];
     const grid = buildGrid({ projects: PROJECTS, joined: after, people, access: { [BOARD]: { doc: { managers: [], engineers: [], floor: [], testers: [], masters: [] } } }, me: { uid: 'x', email: 'boss@example.test' } });
     const cell = grid.rows[0].cells[BOARD];
     expect([cell.state, cell.plain], ['none', true]);
+  });
+  await test('a linked app counts even where the list on the device is from before it joined', () => {
+    const old = { ...PROJECTS, [DESIGN]: { ...PROJECTS[DESIGN], joined: false } };
+    expect(appsFromLinks({ [DESIGN]: { linked: true, role: 'lead' } }, old), { [DESIGN]: 'lead' });
+    expect(appsFromLinks({ [DESIGN]: { waiting: true, role: 'manager' } }, old), { [DESIGN]: 'manager' }, 'waiting too');
+    expect(appsFromLinks({ [DESIGN]: { linked: true, role: null } }, old), {}, 'still not with no role');
+    expect(appsFromLinks({ [DRAWINGS]: { linked: true, role: null } }, PROJECTS), { [DRAWINGS]: 'link' }, 'fixed roles: linked is enough');
+    // Its tile is there, as a plain way in to the same page.
+    const tile = tilesFor({ [DESIGN]: 'lead' }, { joined: { [DESIGN]: false } })[0];
+    ok(tile.own, 'shown as its own sign-in');
+    expect(tile.href, '/design-scheduling/');
   });
   await test('no card is asked of an app the person still signs in to the old way', async () => {
     let asked = 0;

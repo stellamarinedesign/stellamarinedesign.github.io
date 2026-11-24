@@ -82,8 +82,8 @@ async function keyFor(hub, person, pid, fill) {
  * acting master can read it now (always so when masters link themselves).
  * The hub's copy alone may hold no role: a login that had its role there
  * before it was linked, or only a tile tick, would then have no tile and no
- * place in the switcher until the next Accounts load caught up (23 Nov,
- * design scheduling). Not readable: the copy stands, and the catch-up mends it.
+ * place in the switcher until the next Accounts load caught up. Not readable:
+ * the copy stands, and the catch-up mends it.
  */
 async function noteLinked(hub, person, pid, { app = null, model = null } = {}) {
   let role = person.links?.[pid]?.role ?? null;

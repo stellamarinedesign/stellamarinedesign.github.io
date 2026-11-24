@@ -245,28 +245,33 @@ export function tilesFor(apps, { master = false, current = null, joined = null, 
 
 /**
  * The map the core keeps for a signed-in person: which apps they have, and as
- * what. An app that has joined counts once they have a ROLE there (or are
- * linked, for an app whose roles are fixed); one that has not joined counts
+ * what. An app counts once they are linked to it (or waiting to be) with a
+ * ROLE there, or just linked, for an app whose roles are fixed; before that,
  * when a master has ticked its tile. Linked with no role is not an app you
  * have: you could sign in there and would see nothing.
+ *
+ * `joined` IS NOT ASKED. Only a joined app can be linked, so a link says so
+ * already, and the copy of this file a browser holds may be from before the
+ * app joined: the site's files are kept for 10 minutes. Asking it took a
+ * newly linked app off people's front page and switcher for that long. An app
+ * taken back out (`joined: false`) keeps its tile for whoever is still
+ * linked, as a plain way in to its own sign-in, until they are handed back.
  *
  * A TILE TICK OUTLIVES THE DAY THE APP JOINS. Logins are linked one at a time,
  * so a ticked person keeps their plain tile after the app has joined, until
  * they are linked (linking replaces the tick). Nobody's tile vanishes on the
  * day an app's patch ships.
  * @param {object} links   a person's `links` from the hub directory
- * @param {object} [joined] { [pid]: boolean }, to override the registry (the demo)
  * @returns {{ [pid]: string }} role id, or 'link'
  */
-export function appsFromLinks(links, projects = PROJECTS, joined = null) {
+export function appsFromLinks(links, projects = PROJECTS) {
   const out = {};
   for (const [pid, link] of Object.entries(links ?? {})) {
     const p = projects[pid];
     if (!p || !link) continue;
     if (link.plain) { out[pid] = 'link'; continue; }
-    const isJoined = joined ? Boolean(joined[pid]) : Boolean(p.joined);
     // WAITING counts: the app is theirs, and opening it is how they link it.
-    if (!isJoined || !(link.linked || link.waiting)) continue;
+    if (!(link.linked || link.waiting)) continue;
     if (p.access?.fixed) out[pid] = 'link';
     else if (link.role) out[pid] = link.role;
   }

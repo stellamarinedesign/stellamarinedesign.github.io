@@ -121,6 +121,18 @@ results.push({
   detail: drift.join('\n'),
 });
 
+// The core asks for hub-impl.js and the registry under its own BUILD, so a hub
+// release that leaves it behind can run new pages over old pieces.
+const versionIn = (path, name) => readFileSync(join(ROOT, path), 'utf8').match(new RegExp(`${name} = '([^']+)'`))?.[1];
+const version = versionIn('js/version.js', 'VERSION');
+const build = versionIn('core/v1/hub.js', 'BUILD');
+results.push({
+  group: 'the repository',
+  name: 'the live core carries the same build as the hub page',
+  pass: Boolean(version) && version === build,
+  detail: `js/version.js says ${version}, core/v1/hub.js says ${build}`,
+});
+
 const ux = uxRules();
 results.push({
   group: 'the repository',

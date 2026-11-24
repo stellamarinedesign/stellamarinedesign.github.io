@@ -19,8 +19,9 @@ the site:
 
 The copies differ in one line: the CHANNEL constant in hub.js, which is what
 stops the trial copy looking for a trial copy of itself. This script keeps it
-right. Bump BUILD in hub.js by hand when promoting, so devices fetch the new
-hub-impl.js rather than a cached one.
+right. Bump BUILD in both copies of hub.js by hand with EVERY hub release,
+to the same string as js/version.js: the core fetches hub-impl.js and the
+registry under it (tests/node.mjs checks the live copy).
 """
 import sys
 from pathlib import Path
