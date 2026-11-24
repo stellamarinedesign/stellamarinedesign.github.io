@@ -43,7 +43,7 @@
 //                (typing their old password for the app once) did not take
 //   unreachable  the hub could not be reached; `legacy` was called if given
 
-const BUILD = '2026-11-24.1';
+const BUILD = '2026-11-25.1';
 const CHANNEL = 'next';
 const NOTE = 'stella.hub.session';
 const CHANNEL_KEY = 'stella.hub.channel';
@@ -101,6 +101,7 @@ export function makeHub(env) {
   let implPromise = null;
   let watching = false;
   let checking = false;
+  let warmed = false;
   const listeners = new Set();
   const switchers = new Set();
 
@@ -257,6 +258,18 @@ export function makeHub(env) {
       catch { /* the hub cannot be reached: the button simply does nothing */ }
     });
     s.slot.append(b);
+    warmSwitcher();
+  }
+
+  /**
+   * The menu's code and its list of apps, fetched once the page is idle, so the
+   * first press has only to draw. Files from this site: nothing is asked of
+   * Firebase, and no SDK is loaded. If it fails, the press fetches them.
+   */
+  function warmSwitcher() {
+    if (warmed) return;
+    warmed = true;
+    env.idle(async () => { try { await (await impl()).warm?.(); } catch { /* the press tries again */ } });
   }
 
   /**
