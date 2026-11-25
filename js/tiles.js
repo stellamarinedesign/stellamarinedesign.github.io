@@ -49,5 +49,17 @@ export function toggled(arranged, id, hide) {
   return { order: arranged.map((t) => t.id), hidden: arranged.map((t) => t.id).filter((x) => off.has(x)) };
 }
 
+/**
+ * The tiles dealt into columns: first left, second right, third left. Each
+ * column is a stack of its own, so a tall tile pushes down only what is under
+ * it. Dealt by ORDER and never by height: a tile stays where its person put
+ * it, however much is waiting in it today.
+ */
+export function columns(list, n) {
+  const out = Array.from({ length: Math.max(1, Math.min(n, list.length)) }, () => []);
+  list.forEach((t, i) => out[i % out.length].push(t));
+  return out;
+}
+
 /** Do two choices come to the same thing? */
 export const same = (a, b) => JSON.stringify(tidyPrefs(a)) === JSON.stringify(tidyPrefs(b));

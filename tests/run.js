@@ -10,8 +10,8 @@ import * as L from '../js/linking.js';
 import { buildGrid, looseCount, appsFromLinks, staleLinks, claimedLinks, readLists } from '../js/matrix.js';
 import { makeWorld, addProject, addHubLogin, addAppLogin, trap, fakeHub, fakeApp, demoWorld } from '../js/fake.js';
 import { coreTests } from './core.js';
-import { normaliseCard, sitePath, loadCard } from '../js/cards.js';
-import { arrange, effective, moved, toggled, tidyPrefs } from '../js/tiles.js';
+import { normaliseCard, sitePath, loadCard, roomOf, roomFor, tidyRooms, NO_CARD } from '../js/cards.js';
+import { arrange, columns, effective, moved, toggled, tidyPrefs } from '../js/tiles.js';
 import { decodeDoc } from '../core/v1/hub-impl.js';
 
 const results = [];
@@ -863,8 +863,23 @@ export async function run() {
     expect(tidyPrefs({ order: Array.from({ length: 60 }, (_, i) => `p${i}`) }).order.length, 40);
   });
 
+  await test('tiles are dealt left and right by their order, whatever their size', () => {
+    expect(columns(['a', 'b', 'c', 'd', 'e'], 2), [['a', 'c', 'e'], ['b', 'd']]);
+    expect(columns(['a', 'b', 'c'], 1), [['a', 'b', 'c']], 'a phone keeps the person\'s order');
+    expect(columns(['a'], 2), [['a']]);
+    expect(columns([], 2), [[]]);
+  });
+
   // -------------------------------------------------------------------------
   group = 'overview cards';
+  await test('a tile starts the size its card was last time', async () => {
+    const got = (state, n = 0) => ({ state, card: { items: Array.from({ length: n }, () => ({})) } });
+    expect([roomOf(got('ready', 3)), roomOf(got('ready')), roomOf(got('none'))], [3, 0, NO_CARD]);
+    expect(roomOf(got('failed')), null, 'a card that failed forgets nothing');
+    expect(tidyRooms({ a: 3, b: 0, c: NO_CARD, d: 4, e: -2, f: '3', g: 1.5 }), { a: 3, b: 0, c: NO_CARD });
+    for (const bad of [null, 'x', 7, [], undefined]) expect(tidyRooms(bad), {});
+    expect([roomFor({ a: 0 }, 'a'), roomFor({ a: NO_CARD }, 'a'), roomFor({}, 'a')], [0, NO_CARD, 1]);
+  });
   await test('a link from a card stays on this site', () => {
     expect(sitePath('/material-ordering/manager.html'), '/material-ordering/manager.html');
     expect(sitePath('/Production-Scheduling/parts?x=1#y'), '/Production-Scheduling/parts?x=1#y');

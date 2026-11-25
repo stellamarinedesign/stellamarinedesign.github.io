@@ -618,9 +618,11 @@ A sticky header over one centred column. The column is at most 1344px wide with 
 (sp-5). Spacing runs on the family's 4/8px scale, sp-1 (4px) to sp-6 (32px), with 6, 10, 14 and
 20px used inside components.
 
-- **The front page** is the tile grid and nothing above it: two equal columns with a 16px gap,
-  one column with a 12px gap on a phone. Tiles in a row are the same height, and each tile's
-  page links sit at its foot.
+- **The front page** is the tiles and nothing above them: two equal columns with a 16px gap,
+  one column with a 12px gap on a phone. Each column is a stack of its own and each tile is as
+  tall as what is in it, so nothing lines up across the two (owner, 26 Nov). Tiles are dealt
+  by the person's order, first left, second right, and never by height, so a tile stays where
+  it was put. Each tile's page links sit at its foot.
 - **Accounts** is a page heading with the one primary button, a callout when something wants
   doing, the grid, and the list of leftover addresses under a section heading. The grid scrolls
   sideways inside its own container, so the page never does, and its trailing edge fades while
@@ -643,9 +645,11 @@ half-screen layout with the touch sizes.
 CAD) as well as at 390px and 1440px, and the review screenshots are taken at all three. Nothing
 depends on width above 1100px except the page's padding.
 
-**The Held Space Rule.** A tile holds the room for its card from the moment it is drawn: 206px,
-which is a 36px label and three 56px lines with the two 1px rules between them. The card
-arrives into exactly that, so the page does not move.
+**The Held Space Rule.** A tile holds the room for its card from the moment it is drawn, the
+size the card was the last time this browser showed it: a 36px label and its 56px lines with a
+1px rule between each (206px for three), 74px for a card with nothing waiting, nothing for an
+app that has no card for this person. One line the first time. The page moves only when there
+is more or less waiting than last time.
 
 **The 44px Rule.** On a phone or a touch screen everything that can be pressed is at least 44px
 tall, or is given that much room to be hit. A 22px chip that is a button reaches 11px past its
@@ -853,7 +857,7 @@ One app, and what is waiting in it.
 - **Card did not arrive:** one quiet line, "Not available just now.", and a small Try again
   button. A slow or broken card costs its own tile one line and nothing else.
 - **No card:** an app that supplies none is a head row and its page links.
-- **Foot:** the app's page links, pinned to the bottom of the tile under a 1px Rule Grey rule.
+- **Foot:** the app's page links, 8px under the rest of the tile, over a 1px Rule Grey rule.
   They are quiet: Ash meta with a Strong Rule underline, 16px apart, turning White on hover. On
   touch each link gets 13px above and below, which makes it 44px tall.
 - **Phone:** padding drops to 12px by 16px.
@@ -880,7 +884,8 @@ A card still on its way is drawn as flat blocks exactly the size of the lines th
 
 - **Block:** a 56px slot holding a Band block with a 1px Chip Grey edge and 8px corners, inset
   6px above and below. Slots are 1px apart, like the rules between lines.
-- **In a tile:** the label's room and three blocks, inside the 206px the tile already holds.
+- **In a tile:** the label's room and as many blocks as the card had lines last time (one the
+  first time), or one 38px block where it said that nothing was waiting.
 - **On Accounts and the account log:** three or four blocks under the page heading.
 - There is no shimmer. The container is marked busy and carries a "Loading" name for a screen
   reader.
@@ -1044,8 +1049,8 @@ Only things that arrive move, and they move once.
 - While the theme changes, nothing fades: every colour changes at once.
 - All of it is on the family ease-out, `cubic-bezier(.23, 1, .32, 1)`.
 
-Nothing animates on load. A tile does not move when its card arrives, a skeleton does not
-shimmer, and hover is a change of colour. With reduced motion asked for, none of the above
+Nothing animates on load. A tile that has to change size when its card arrives changes at
+once, a skeleton does not shimmer, and hover is a change of colour. With reduced motion asked for, none of the above
 runs.
 
 ## Where the hub keeps its own sizes (owner, 23 Nov 2026)

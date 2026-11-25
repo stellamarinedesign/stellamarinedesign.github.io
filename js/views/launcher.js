@@ -7,7 +7,11 @@
 //
 // THE TILES DO NOT WAIT FOR THE CARDS. They are drawn at once from what the
 // hub already knows about this person; each app's card is then fetched by
-// itself and arrives into space already held for it, so nothing moves.
+// itself. Its tile starts the size it was last time (kept in this browser), so
+// the page moves only when there is more or less waiting than there was.
+//
+// A TILE IS AS TALL AS WHAT IS IN IT, and the two columns are stacks of their
+// own: nothing lines up across them, and nothing is stretched to match.
 //
 // THE PERSON ARRANGES THEIR OWN TILES (#/edit, from the cog): hide and order,
 // for all their devices or for this one only (js/tiles.js). The tiles still
@@ -16,8 +20,8 @@
 
 import { el, icon, working } from '../ui.js';
 import { tilesFor } from '../registry.js';
-import { loadCard } from '../cards.js';
-import { arrange, effective, moved, toggled, tidyPrefs, same } from '../tiles.js';
+import { loadCard, roomOf, roomFor, tidyRooms, NO_CARD } from '../cards.js';
+import { arrange, columns, effective, moved, toggled, tidyPrefs, same } from '../tiles.js';
 import { friendly } from '../errors.js';
 
 // This browser's copy of the person's choice, and this device's own choice.
@@ -26,6 +30,12 @@ const HERE = (uid) => `stella.hub.tiles.here.${uid}`;
 // Set while a change to the person's own choice has not reached the hub (offline,
 // say): the next visit sends it, instead of overwriting it with the hub's older copy.
 const UNSENT = (uid) => `stella.hub.tiles.unsent.${uid}`;
+// How much room each tile's card took last time (cards.js).
+const ROOMS = (uid) => `stella.hub.rooms.${uid}`;
+const rooms = {
+  get(uid) { try { return tidyRooms(JSON.parse(localStorage.getItem(ROOMS(uid)))); } catch { return {}; } },
+  set(uid, pid, n) { try { localStorage.setItem(ROOMS(uid), JSON.stringify({ ...this.get(uid), [pid]: n })); } catch { /* nothing kept */ } },
+};
 const flag = {
   get(k) { try { return localStorage.getItem(k) === '1'; } catch { return false; } },
   set(k, on) { try { if (on) localStorage.setItem(k, '1'); else localStorage.removeItem(k); } catch { /* nothing kept */ } },
@@ -104,9 +114,17 @@ function drawTiles(view, { me, backend }, tiles, prefs) {
     return;
   }
   const grid = el('div', { class: 'tiles' });
-  for (const t of shown) grid.append(tile(t, me, backend));
+  const nodes = shown.map((t) => tile(t, me, backend));
+  // The tiles themselves are moved, so a card already drawn stays drawn.
+  stack = () => grid.replaceChildren(...columns(nodes, phone.matches ? 1 : 2).map((c) => el('div', { class: 'tile-col' }, c)));
+  stack();
   view.append(grid);
 }
+
+// One column on a phone (css/hub.css's own band), two from there up.
+const phone = matchMedia('(max-width: 699px)');
+let stack = () => {};
+phone.addEventListener('change', () => stack());
 
 // ---------------------------------------------------------------------------
 // editing: hide and order, for all devices or this one
@@ -218,14 +236,19 @@ function tile(t, me, backend) {
 
 /** Fetch one tile's card and draw it where its skeleton was. */
 async function fill(face, t, me, backend) {
-  face.classList.add('has-card');
+  const lines = roomFor(rooms.get(me.uid), t.id);
   face.setAttribute('aria-busy', 'true');
-  face.replaceChildren(
-    el('div', { class: 't-label' }, el('span', { class: 'sr-only' }, `Loading ${t.title}`), ' '),
-    el('div', { class: 'skel' }), el('div', { class: 'skel' }), el('div', { class: 'skel' }));
+  if (lines !== NO_CARD) {
+    face.dataset.room = String(lines);
+    face.replaceChildren(
+      el('div', { class: 't-label' }, el('span', { class: 'sr-only' }, `Loading ${t.title}`), ' '),
+      ...(lines ? Array.from({ length: lines }, () => el('div', { class: 'skel' })) : [el('div', { class: 'skel short' })]));
+  }
 
   const got = await loadCard(backend, t, me);
   face.removeAttribute('aria-busy');
+  const now = roomOf(got);
+  if (now !== null) { rooms.set(me.uid, t.id, now); delete face.dataset.room; }
 
   if (got.state === 'none') { face.replaceChildren(); return; }
   if (got.state === 'failed') {

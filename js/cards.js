@@ -48,6 +48,28 @@ export function normaliseCard(raw) {
   return { title: text(raw.title, 40), count, items, href: sitePath(raw.href), empty: text(raw.empty, 80) };
 }
 
+// HOW MUCH ROOM A CARD TOOK LAST TIME, so this time its tile starts that size:
+// its number of lines, 0 for "nothing waiting", -1 for no card at all. Kept by
+// this browser, per person (views/launcher.js); a convenience and never more.
+export const NO_CARD = -1;
+
+/** What to remember of a load. null: it failed, so what was remembered stands. */
+export function roomOf(got) {
+  if (got.state === 'none') return NO_CARD;
+  return got.state === 'ready' ? got.card.items.length : null;
+}
+
+/** What was kept, made safe to use. */
+export function tidyRooms(raw) {
+  const out = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  for (const [pid, n] of Object.entries(raw).slice(0, 40)) if (Number.isInteger(n) && n >= NO_CARD && n <= MAX_ITEMS) out[pid] = n;
+  return out;
+}
+
+/** The lines to hold room for. Never seen before: one. */
+export const roomFor = (rooms, pid) => rooms[pid] ?? 1;
+
 /**
  * One tile's card.
  *   { state: 'none' }            the app supplies none, or has nothing for this person

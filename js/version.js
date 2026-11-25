@@ -12,4 +12,4 @@
 //
 // The shared core (core/v1/hub.js) has its OWN build string: apps load it
 // directly, on their own schedule, and it changes far less often than this.
-export const VERSION = '2026-11-25.3';
+export const VERSION = '2026-11-26.1';

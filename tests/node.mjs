@@ -133,6 +133,25 @@ results.push({
   detail: `js/version.js says ${version}, core/v1/hub.js says ${build}`,
 });
 
+// Two class names in the core are part of its contract with the apps, though
+// no function names them: an app that reloads itself when start-up is slow
+// looks for them, so it never reloads under somebody typing a password
+// (handoff/PRODUCTION_BOARD_HUB_PATCH.md, point 4). Renaming either breaks that app.
+const frozen = [];
+for (const path of ['core/v1/hub-impl.js', 'core/next/hub-impl.js']) {
+  const src = readFileSync(join(ROOT, path), 'utf8');
+  for (const name of ['shub-screen', 'shub-scrim']) {
+    if (!src.includes(`class: '${name}'`)) frozen.push(`${path}: nothing is drawn as .${name} any more`);
+    if (!src.includes(`.shub .${name}{`)) frozen.push(`${path}: .${name} has no style of its own any more`);
+  }
+}
+results.push({
+  group: 'the repository',
+  name: 'the sign-in screens keep the class names apps look for',
+  pass: frozen.length === 0,
+  detail: frozen.join('\n'),
+});
+
 const ux = uxRules();
 results.push({
   group: 'the repository',
