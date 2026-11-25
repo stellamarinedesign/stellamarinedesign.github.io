@@ -17,7 +17,7 @@
 import { el, icon, menu, copyText, withReveal, shake, working } from '../ui.js';
 import { openDialog, confirmDialog, promptDialog } from '../dialog.js';
 import { PROJECTS, HUB_NAME } from '../registry.js';
-import { buildGrid, looseCount, staleLinks, claimedLinks } from '../matrix.js';
+import { buildGrid, looseCount, readLists, staleLinks, claimedLinks } from '../matrix.js';
 import * as L from '../linking.js';
 import { friendly, kindOf, HubError } from '../errors.js';
 import { isEmail, tidyEmail } from '../keys.js';
@@ -38,14 +38,7 @@ const why = (c) => WHY[c.problem] ?? (c.problem ? 'Not reachable' : 'Only its ow
 async function load({ backend, me }) {
   const joined = backend.joined();
   const people = await backend.hub.listPeople();
-  const access = {};
-  await Promise.all(Object.entries(PROJECTS).map(async ([pid, p]) => {
-    if (!joined[pid] || p.access.fixed) return;
-    try {
-      const doc = await backend.app(pid).readAccess();
-      access[pid] = doc ? { doc } : { error: 'missing' };
-    } catch (e) { access[pid] = { error: kindOf(e) }; }
-  }));
+  const access = await readLists({ projects: PROJECTS, joined, people, me, read: (pid) => backend.app(pid).readAccess() });
   return { people, joined, access, grid: buildGrid({ projects: PROJECTS, joined, people, access, me }) };
 }
 

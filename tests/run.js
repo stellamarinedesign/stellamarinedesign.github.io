@@ -7,7 +7,7 @@ import { HubError, kindOf, friendly } from '../js/errors.js';
 import * as A from '../js/access.js';
 import { PROJECTS, problems, tilesFor, homeFor } from '../js/registry.js';
 import * as L from '../js/linking.js';
-import { buildGrid, looseCount, appsFromLinks, staleLinks, claimedLinks } from '../js/matrix.js';
+import { buildGrid, looseCount, appsFromLinks, staleLinks, claimedLinks, readLists } from '../js/matrix.js';
 import { makeWorld, addProject, addHubLogin, addAppLogin, trap, fakeHub, fakeApp, demoWorld } from '../js/fake.js';
 import { coreTests } from './core.js';
 import { normaliseCard, sitePath, loadCard } from '../js/cards.js';
@@ -740,6 +740,26 @@ export async function run() {
     const cell = grid.rows.find((r) => r.email === 'sam@example.test').cells[BOARD];
     expect(cell.role, 'floor');
     ok(cell.stale);
+  });
+  await test('an app the acting master is not linked to is never tried; the others are read', async () => {
+    const asked = [];
+    const read = async (pid) => { asked.push(pid); if (pid === ORDERING) throw Object.assign(new Error('x'), { code: 'auth/invalid-credential' }); return pid === BOARD ? null : { leads: [] }; };
+    const joined = { [BOARD]: true, [ORDERING]: true, [ORDERING_TEST]: true, [DESIGN]: true, [DRAWINGS]: true };
+    const linked = { linked: true, role: null };
+    const people = [
+      { uid: 'me', email: BOSS, links: { [BOARD]: linked, [ORDERING]: linked, [DESIGN]: linked, [DRAWINGS]: linked } },
+      { uid: 'other', email: 'ann@example.test', links: { [ORDERING_TEST]: linked } },
+    ];
+    const got = await readLists({ projects: PROJECTS, joined, people, me: { uid: 'me', email: BOSS }, read });
+    expect(asked.sort(), [BOARD, ORDERING, DESIGN].sort(), 'not the ordering test (somebody else is linked there), not fixed roles');
+    expect(got[ORDERING_TEST], { error: 'not-linked' });
+    expect([got[BOARD], got[ORDERING], got[DESIGN]], [{ error: 'missing' }, { error: 'credential' }, { doc: { leads: [] } }]);
+    // Waiting, or only ticked, is not linked.
+    for (const link of [{ waiting: true, role: 'lead' }, { plain: true }]) {
+      asked.length = 0;
+      await readLists({ projects: PROJECTS, joined: { [DESIGN]: true }, people: [{ uid: 'me', email: BOSS, links: { [DESIGN]: link } }], me: { uid: 'me' }, read });
+      expect(asked, []);
+    }
   });
   await test('a master handed back, who then left a Link unfinished, can still link themselves', async () => {
     // 25 Nov, the ordering test: Link saves a key before it asks for the password,

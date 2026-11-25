@@ -20,6 +20,30 @@
 
 import { tidyEmail } from './keys.js';
 import { roleOf, isMaster, rows as accessRows, normalise } from './access.js';
+import { kindOf } from './errors.js';
+
+/**
+ * What each joined app's lists document comes back as, read as the acting
+ * master: { [pid]: { doc } | { error: kind } }.
+ *
+ * AN APP THEY ARE NOT LINKED TO IS NOT TRIED. The hub may still hold a key for
+ * it (a Link left unfinished saves one first), and trying it is a refused
+ * sign-in on every load: enough of those and Google blocks that login for a
+ * while, for the person typing its own password too.
+ */
+export async function readLists({ projects, joined, people, me, read }) {
+  const mine = people.find((p) => p.uid === me?.uid);
+  const access = {};
+  await Promise.all(Object.entries(projects).map(async ([pid, p]) => {
+    if (!joined?.[pid] || p.access.fixed) return;
+    if (!mine?.links?.[pid]?.linked) { access[pid] = { error: 'not-linked' }; return; }
+    try {
+      const doc = await read(pid);
+      access[pid] = doc ? { doc } : { error: 'missing' };
+    } catch (e) { access[pid] = { error: kindOf(e) }; }
+  }));
+  return access;
+}
 
 /**
  * @param {object} o
