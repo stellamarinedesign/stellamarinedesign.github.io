@@ -153,7 +153,7 @@ export const PROJECTS = {
       appId: '1:663047303134:web:55114e9203e3d7a344774f',
     },
     appCheck: null,
-    card: null,
+    card: '/design-scheduling/js/hub-card.js',
     access: {
       doc: ['settings', 'access'],
       roles: [

@@ -872,6 +872,15 @@ export async function run() {
       expect(sitePath(bad), null, String(bad));
     }
   });
+  await test('a card is served by the app it belongs to', () => {
+    for (const [pid, p] of Object.entries(PROJECTS)) {
+      if (!p.card) continue;
+      expect(p.joined, true, `${pid}: a card needs the linked login to read with`);
+      expect(sitePath(p.card), p.card);
+      expect(p.card.startsWith(p.home.default) && p.card.endsWith('.js'), true, `${pid}: in the app's own folder`);
+    }
+  });
+
   await test('what a card returns is trimmed to what can be drawn', () => {
     const card = normaliseCard({
       title: '  Orders waiting ', count: 3.9, href: 'https://elsewhere.example/', empty: 'None.',
