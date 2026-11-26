@@ -89,6 +89,7 @@ export async function render(view, ctx) {
 
   if (editing) {
     const mine = unsent ? kept : ((await fetchMine(backend, me.uid)) ?? kept ?? tidyPrefs(null));
+    if (ctx.stale?.()) return;           // another page was asked for meanwhile
     local.set(MINE(me.uid), mine);
     editor(view, ctx, tiles, mine);
     return;

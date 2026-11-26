@@ -21,6 +21,11 @@ const THEME_KEY = 'stella.hub.theme';
 const SHELL_KEY = 'stella.hub.shell';
 
 const state = { me: null, backend: null, impl: null };
+// Counts the pages asked for. A page that loads slower than the next one asked
+// for must not draw over it (Accounts reads every joined app's lists, and took
+// long enough on 27 Nov to draw itself over Home): each render is told whether
+// it is still the latest (ctx.stale) and checks before it draws.
+let routes = 0;
 
 const VIEWS = {
   '': { module: './views/launcher.js', tab: '#/' },
@@ -112,6 +117,8 @@ function drawDemoStrip() {
 }
 
 async function route() {
+  const mine = ++routes;
+  const stale = () => mine !== routes;
   const name = location.hash.replace(/^#\/?/, '').split('/')[0];
   const v = VIEWS[name] ?? VIEWS[''];
   if (v.master && !state.me.master) { location.replace('#/'); return; }
@@ -119,10 +126,10 @@ async function route() {
   const view = $('view');
   try {
     const mod = await import(v.module);
-    await mod.render(view, { me: state.me, backend: state.backend, impl: state.impl, redraw: route, toast });
+    await mod.render(view, { me: state.me, backend: state.backend, impl: state.impl, redraw: route, toast, stale });
   } catch (e) {
     console.error(e);
-    problem('This page did not load', e?.message ?? String(e));
+    if (!stale()) problem('This page did not load', e?.message ?? String(e));
   }
 }
 

@@ -84,6 +84,7 @@ export async function render(view, ctx) {
     // it is a copy for drawing tiles, not a change anybody made.
     if (await catchUp(ctx, data)) data = await load(ctx);
   } catch (e) {
+    if (ctx.stale?.()) return;           // another page was asked for meanwhile
     view.textContent = '';
     view.append(el('div', { class: 'state-msg', role: 'alert' },
       el('h1', { class: 'h1' }, 'Accounts did not load'),
@@ -91,6 +92,7 @@ export async function render(view, ctx) {
       el('button', { class: 'btn', type: 'button', onclick: () => render(view, ctx) }, 'Reload')));
     return;
   }
+  if (ctx.stale?.()) return;
   draw(view, ctx, data);
 }
 

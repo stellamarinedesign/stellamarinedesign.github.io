@@ -18,6 +18,7 @@ export async function render(view, ctx, count = PAGE) {
   let entries;
   try { entries = await ctx.backend.hub.listLog(count); }
   catch (e) {
+    if (ctx.stale?.()) return;           // another page was asked for meanwhile
     view.textContent = '';
     view.append(el('div', { class: 'state-msg', role: 'alert' },
       el('h1', { class: 'h1' }, 'The account log did not load'),
@@ -25,6 +26,7 @@ export async function render(view, ctx, count = PAGE) {
       el('button', { class: 'btn', type: 'button', onclick: () => render(view, ctx, count) }, 'Reload')));
     return;
   }
+  if (ctx.stale?.()) return;
 
   view.textContent = '';
   view.append(el('div', { class: 'page-head' }, el('h1', { class: 'h1' }, 'Account log')));

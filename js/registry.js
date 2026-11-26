@@ -53,7 +53,8 @@ export const PROJECTS = {
       appId: '1:397159853236:web:23133f8085d3a17f2e3be1',
     },
     appCheck: null,
-    card: null,
+    // Next orders due, for managers, testers and the floor (its 2026-11-27.5).
+    card: '/Production-Scheduling/js/hub-card.js',
     access: {
       doc: ['settings', 'access'],
       roles: [
