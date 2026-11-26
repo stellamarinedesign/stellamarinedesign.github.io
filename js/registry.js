@@ -39,7 +39,8 @@ export const PROJECTS = {
     group: 'Production',
     icon: 'board',
     stage: 'live',
-    joined: false,
+    // Joined 27 Nov 2026: its three pages sign in through the hub from its 2026-11-27.1.
+    joined: true,
     home: { default: '/Production-Scheduling/' },
     pages: [
       { title: 'Parts', href: '/Production-Scheduling/parts' },

@@ -43,7 +43,7 @@
 //                (typing their old password for the app once) did not take
 //   unreachable  the hub could not be reached; `legacy` was called if given
 
-const BUILD = '2026-11-26.1';
+const BUILD = '2026-11-27.1';
 const CHANNEL = 'next';
 const NOTE = 'stella.hub.session';
 const CHANNEL_KEY = 'stella.hub.channel';
