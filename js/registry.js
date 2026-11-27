@@ -80,7 +80,8 @@ export const PROJECTS = {
     group: 'Production',
     icon: 'box',
     stage: 'live',
-    joined: false,
+    // Joined 27 Nov 2026: its four pages sign in through the hub from its 2026-11-27.9.
+    joined: true,
     home: { default: '/material-ordering/', manager: '/material-ordering/manager.html' },
     pages: [
       { title: 'Consumables', href: '/material-ordering/consumables.html' },
@@ -108,11 +109,11 @@ export const PROJECTS = {
   },
 
   // Material ordering's throwaway copy: its own users and its own lists. The
-  // hub's proof runs against this one before anything touches a live app.
-  // JOINED FOR THE PROOF: the page that has joined is lab/proof.html, a
-  // stand-in built the way material ordering is built, so the tile goes there.
-  // When material ordering itself joins, `home` goes back to
-  // { default: '/material-ordering/', manager: '/material-ordering/manager.html' }.
+  // hub's proof ran against this one before anything touched a live app
+  // (lab/proof.html, which stays for that). Since material ordering joined
+  // (27 Nov) the tile opens material ordering itself in TEST MODE: its pages
+  // turn it on with ?test=1, only for a hub login linked here, and off with
+  // ?test=0 (its js/hub-bridge.js, applyTestSwitch).
   'material-ordering-testing': {
     title: 'Material ordering (test)',
     short: 'Ordering test',
@@ -120,7 +121,7 @@ export const PROJECTS = {
     icon: 'box',
     stage: 'dev',
     joined: true,
-    home: { default: '/lab/proof.html' },
+    home: { default: '/material-ordering/?test=1', manager: '/material-ordering/manager.html?test=1' },
     pages: [],
     config: {
       apiKey: 'AIzaSyA-FhiK3Lr4-ioifSGJ7OvtTRwmmZfDrMY',
