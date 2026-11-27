@@ -30,6 +30,11 @@
 // files that cannot read this one (page titles, the web manifest).
 export const HUB_NAME = 'Hubinator';
 
+// THE ONE REAL ADDRESS IN THIS REPO (Pete, 27 Nov): where "Notify the admin"
+// on the hub's screens writes to. It is already public as the author of every
+// commit here. tests/node.mjs allows it in this file and nowhere else.
+export const ADMIN_CONTACT = 'design@stellamarine.com.au';
+
 export const GROUPS = ['Production', 'Design', 'Tools'];
 
 export const PROJECTS = {

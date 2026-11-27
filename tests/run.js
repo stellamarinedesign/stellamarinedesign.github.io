@@ -110,7 +110,7 @@ export async function run() {
   });
   await test('nobody is shown a raw Firebase code', () => {
     expect(friendly({ code: 'auth/invalid-credential', message: 'Firebase: Error (auth/invalid-credential).' }), 'Wrong email or password.');
-    expect(friendly(new HubError('self', 'Your own role is changed by another master.')), 'Your own role is changed by another master.');
+    expect(friendly(new HubError('self', 'Your own role is changed by another admin.')), 'Your own role is changed by another admin.');
   });
 
   // -------------------------------------------------------------------------

@@ -80,7 +80,7 @@ export async function render(view, ctx) {
     view.append(el('div', { class: 'empty' },
       el('b', {}, 'No apps yet. '),
       // A master's own role is never theirs to give; what they can do for themselves is tick a tile, or link.
-      me.master ? 'Tick the apps you use, or link yourself to one, under Accounts.' : 'A hub master gives this login its apps.'));
+      me.master ? 'Tick the apps you use, or link yourself to one, under Accounts.' : 'A hub admin gives this login its apps.'));
     return;
   }
 
@@ -220,7 +220,7 @@ function tile(t, me, backend) {
   const id = el('div', { class: 't-id' }, el('h2', { class: 't-name' }, t.title));
   if (t.roleLabel) id.append(el('span', { class: 't-role' }, t.roleLabel));
   // A project still being tried: its tile is drawn for hub masters and nobody else.
-  if (t.stage === 'dev') id.append(el('span', { class: 'chip' }, 'Masters only'));
+  if (t.stage === 'dev') id.append(el('span', { class: 'chip' }, 'Admins only'));
   if (t.own) id.append(el('span', { class: 'chip outline' }, 'Own sign-in'));
   head.append(ico, id, chev);
 

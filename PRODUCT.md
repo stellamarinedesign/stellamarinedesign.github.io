@@ -67,7 +67,10 @@ has to know how another app stores its work.
 - **Role:** what a person may do in one app, in that app's own words (Manager, Design lead,
   Floor...). A person has one role per app, or none.
 - **Linked:** the hub holds this person's sign-in for that app. Not linked: it does not.
-- **Hub master:** may change accounts. Set in the Firebase console only.
+- **Hub admin:** may change accounts. Set in the Firebase console only. People read "admin",
+  never "master" (owner, 27 Nov, as the production board does): "Ask an admin" on the screens
+  drawn over the apps, "hub admin" on the hub page, an app's own list as "its own admins". The
+  code, the data (`config/access.masters`) and these notes elsewhere keep the word master.
 - **Overview:** the cards on the front page showing what needs attention in each app.
 
 **Capabilities:** one sign-in; the front page (apps and overview together), which each person

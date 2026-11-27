@@ -33,7 +33,7 @@ const WHY = {
   network: 'Not reachable',
   loading: 'Loading',
 };
-const why = (c) => WHY[c.problem] ?? (c.problem ? 'Not reachable' : 'Only its own masters change its list');
+const why = (c) => WHY[c.problem] ?? (c.problem ? 'Not reachable' : 'Only its own admins change its list');
 
 async function load({ backend, me }) {
   const joined = backend.joined();
@@ -88,7 +88,7 @@ export async function render(view, ctx) {
     view.textContent = '';
     view.append(el('div', { class: 'state-msg', role: 'alert' },
       el('h1', { class: 'h1' }, 'Accounts did not load'),
-      el('p', {}, kindOf(e) === 'denied' ? 'This login is not a hub master.' : `${friendly(e)} If you are offline, it loads when the connection is back.`),
+      el('p', {}, kindOf(e) === 'denied' ? 'This login is not a hub admin.' : `${friendly(e)} If you are offline, it loads when the connection is back.`),
       el('button', { class: 'btn', type: 'button', onclick: () => render(view, ctx) }, 'Reload')));
     return;
   }
@@ -224,7 +224,7 @@ function draw(view, ctx, data) {
       run(async () => { await L.rotateLink({ hub, app: backend.app(col.pid), person: personOf(row.uid) }); return `${row.email} has a new key for ${col.title}.`; });
     },
     handBack: async (row, col) => {
-      if (!await confirmDialog({ title: `Hand ${col.title} back to ${row.email}?`, body: `Its login there gets a password of its own again and the hub forgets its key. ${HUB_NAME} will no longer sign it in to ${col.title}.`, ok: 'Hand back', cancel: 'Keep it linked', destructive: true })) return;
+      if (!await confirmDialog({ title: `Hand ${col.title} back to ${row.email}?`, body: `Its login there gets a password of its own again and the hub forgets its key. The hub will no longer sign it in to ${col.title}.`, ok: 'Hand back', cancel: 'Keep it linked', destructive: true })) return;
       run(async () => {
         const r = await L.handBack({ hub, app: backend.app(col.pid), person: personOf(row.uid) });
         if (row.uid === me.uid) await ctx.impl.refresh();
@@ -330,7 +330,7 @@ function draw(view, ctx, data) {
         el('span', { class: 's-mail' }, s.email),
         el('span', { class: 's-on' }, Object.entries(s.cells).map(([pid, c]) => {
           const p = PROJECTS[pid];
-          const label = p.access.roles.find((x) => x.id === c.role)?.label ?? (c.master ? 'Master' : '');
+          const label = p.access.roles.find((x) => x.id === c.role)?.label ?? (c.master ? 'Admin' : '');
           return el('span', { class: 'chip' }, `${p.short}: ${label}`);
         })),
         el('button', { class: 'btn small', type: 'button', 'aria-label': `Add ${s.email} as a person`, onclick: () => act.add(s.email) }, 'Add person')))));
@@ -380,7 +380,7 @@ function cellNode(row, col, cell, act) {
       el('option', { value: '' }, 'None'),
       col.roles.map((r) => el('option', { value: r.id, selected: r.id === cell.role }, r.label)));
     sel.disabled = !col.canEdit || row.self || row.disabled;
-    if (row.self) sel.title = 'Your own role is changed by another master.';
+    if (row.self) sel.title = 'Your own role is changed by another admin.';
     else if (!col.canEdit) sel.title = why(col);
     sel.addEventListener('change', () => act.role(row, col, sel.value || null));
     out.append(sel);

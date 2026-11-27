@@ -26,12 +26,19 @@ function* files(dir) {
   }
 }
 
+// One real address is allowed, in one place: the admin's, where "Notify the
+// admin" writes to (Pete, 27 Nov). Anywhere else it is a stray like any other.
+const CONTACT_FILE = join('js', 'registry.js');
+const CONTACT = /export const ADMIN_CONTACT = '([^']+)';/.exec(readFileSync(join(ROOT, CONTACT_FILE), 'utf8'))?.[1] ?? null;
+
 function addressesInRepo() {
   const found = [];
   for (const path of files(ROOT)) {
     const text = readFileSync(path, 'utf8');
     for (const m of text.match(ADDRESS) ?? []) {
-      if (!ALLOWED.test(m)) found.push(`${relative(ROOT, path)}: ${m}`);
+      if (ALLOWED.test(m)) continue;
+      if (m === CONTACT && relative(ROOT, path) === CONTACT_FILE) continue;
+      found.push(`${relative(ROOT, path)}: ${m}`);
     }
   }
   return found;
@@ -150,6 +157,38 @@ results.push({
   name: 'the sign-in screens keep the class names apps look for',
   pass: frozen.length === 0,
   detail: frozen.join('\n'),
+});
+
+// People read "admin", never "master" (Pete, 27 Nov, as the board does): on the
+// hub page and on every screen the core draws over an app. The code and the
+// docs keep `master`; only words a person reads are checked, which here means
+// a quoted string with a space in it, or one that is the word alone.
+const masterWords = [];
+for (const path of ['core/v1/hub-impl.js', 'core/next/hub-impl.js', 'js/linking.js', 'js/errors.js', 'js/views/accounts.js', 'js/views/account-log.js', 'js/views/launcher.js', 'index.html']) {
+  readFileSync(join(ROOT, path), 'utf8').split('\n').forEach((line, i) => {
+    if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
+    for (const [lit] of line.matchAll(/'[^'\n]*'|"[^"\n]*"|`[^`\n]*`/g)) {
+      if (/\bmasters?\b/i.test(lit) && (/\s/.test(lit) || /^.Masters?.$/.test(lit))) masterWords.push(`${path}:${i + 1} ${lit.slice(0, 80)}`);
+    }
+  });
+}
+results.push({
+  group: 'the repository',
+  name: 'people read "admin", never "master"',
+  pass: masterWords.length === 0,
+  detail: masterWords.join('\n'),
+});
+
+// No reset emails from the hub (Pete, 27 Nov): Firebase's land in junk, and a
+// mail scanner can use the link up first. A lost password goes through the
+// admin, and the sign-in screen offers "Notify the admin" instead.
+const resets = ['core/v1/hub-impl.js', 'core/next/hub-impl.js', 'js/backend.js', 'js/firebase.js']
+  .filter((path) => { try { return /sendPasswordResetEmail|Email me a reset link/.test(readFileSync(join(ROOT, path), 'utf8')); } catch { return false; } });
+results.push({
+  group: 'the repository',
+  name: 'the hub sends no password reset emails',
+  pass: resets.length === 0,
+  detail: resets.join('\n'),
 });
 
 const ux = uxRules();

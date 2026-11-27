@@ -22,7 +22,7 @@ export async function render(view, ctx, count = PAGE) {
     view.textContent = '';
     view.append(el('div', { class: 'state-msg', role: 'alert' },
       el('h1', { class: 'h1' }, 'The account log did not load'),
-      el('p', {}, kindOf(e) === 'denied' ? 'This login is not a hub master.' : `${friendly(e)} If you are offline, it loads when the connection is back.`),
+      el('p', {}, kindOf(e) === 'denied' ? 'This login is not a hub admin.' : `${friendly(e)} If you are offline, it loads when the connection is back.`),
       el('button', { class: 'btn', type: 'button', onclick: () => render(view, ctx, count) }, 'Reload')));
     return;
   }

@@ -230,7 +230,7 @@ export async function handBack({ hub, app, person, fill }) {
 export async function setRole({ hub, app, model, person, role }) {
   const pid = app.projectId;
   const email = tidyEmail(person.email);
-  if (email === tidyEmail(hub.me().email)) throw new HubError('self', 'Your own role is changed by another master.');
+  if (email === tidyEmail(hub.me().email)) throw new HubError('self', 'Your own role is changed by another admin.');
   const link = person.links?.[pid];
   // Listed only behind a login: one the hub holds, or one that exists and its
   // owner will link (waiting). Never an address with no login at all.
@@ -260,7 +260,7 @@ export async function setRole({ hub, app, model, person, role }) {
  * Taking a role away needs no link.
  */
 export async function giveRole({ hub, app, model, person, role, fill }) {
-  if (tidyEmail(person.email) === tidyEmail(hub.me().email)) throw new HubError('self', 'Your own role is changed by another master.');
+  if (tidyEmail(person.email) === tidyEmail(hub.me().email)) throw new HubError('self', 'Your own role is changed by another admin.');
   let p = person;
   if (role !== null) {
     const pid = app.projectId;
@@ -332,7 +332,7 @@ export async function adoptPerson({ hub, email, name, password }) {
  */
 export async function removePerson({ hub, person, apps, fill }) {
   const email = tidyEmail(person.email);
-  if (email === tidyEmail(hub.me().email)) throw new HubError('self', 'You cannot remove yourself; another master can.');
+  if (email === tidyEmail(hub.me().email)) throw new HubError('self', 'You cannot remove yourself; another admin can.');
   const results = {};
   for (const [pid, link] of Object.entries(person.links ?? {})) {
     if (link.plain) { await hub.setLink(person.uid, pid, null); results[pid] = 'ok'; continue; }

@@ -759,7 +759,7 @@ Quiet and exact: outlined by default, one filled button at most.
 ### Chips
 
 - **Style:** 22px tall, a full pill, 8px of side padding, Chip Grey fill, Ash meta text. It
-  names a fact about what it sits beside ("You", "Masters only").
+  names a fact about what it sits beside ("You", "Admins only").
 - **Outline:** transparent with a 1px Strong Rule edge and Muted Ash text, the quieter of the
   two ("Own sign-in", "Not joined", "Removed").
 - **Amber:** the amber tint with amber text, for why a column cannot be read.
@@ -991,8 +991,11 @@ core's copy). The core reads the host page's theme each time it draws and wears 
   352px wide and 16px between its parts. The Stella mark, then the hub's name in header-title
   type, centred. Then the form, 12px between its parts: Email and Password under uppercase
   labels (the password with its Show button), the error line, a primary Sign in button the full
-  width of the column, a quiet text button in Muted Ash meta for the reset link, and a note
-  line in Muted Ash meta. It is an ordinary form with a username and a current-password field,
+  width of the column, a quiet text link in Muted Ash meta, "Notify the admin" (an email to the
+  admin, written in the person's own mail app; no reset link since 27 Nov: the hub sends no
+  reset emails), and a note line in Muted Ash meta. A refused sign-in says "Wrong email or
+  password. If the password is right, your hub login may not be set up yet: notify the admin."
+  The no-access and relink cards carry the same link under their buttons. It is an ordinary form with a username and a current-password field,
   which is what password managers and the iPad keychain look for.
 - **No-access cards:** the same ground and column with centred text: the mark, a heading in
   headline type, one sentence in Ash, and one or two buttons side by side that share the width.

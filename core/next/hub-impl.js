@@ -43,6 +43,23 @@ const here = (path) => new URL(path + (STAMP ? `?v=${STAMP}` : ''), import.meta.
 
 const tidy = (e) => String(e ?? '').trim().toLowerCase();
 
+// TIME LIMITS. On patchy Wi-Fi a request can neither answer nor fail, and a
+// person then looks at "Signing in…" for good. Every network step here gives
+// up after a while with the code 'timeout', which hub.js takes as "the hub
+// cannot be reached": its card, with Try again. A person typing is never timed.
+const READ_MS = 10000;               // one read of the hub's database
+const START_MS = 15000;              // Firebase's own code arriving, and its first answer
+const SIGN_IN_MS = 20000;            // a sign-in, or a password swapped in an app
+function within(ms, work) {
+  let timer = null;
+  const late = new Promise((_, no) => {
+    timer = setTimeout(() => no(Object.assign(new Error('The hub took too long to answer.'), { code: 'timeout' })), ms);
+  });
+  return Promise.race([work, late]).finally(() => clearTimeout(timer));
+}
+
+const WRONG = 'Wrong email or password.';
+
 // ---------------------------------------------------------------------------
 // Firestore's REST answers, as plain values
 // ---------------------------------------------------------------------------
@@ -81,11 +98,16 @@ async function firebaseProvider() {
   const base = `https://firestore.googleapis.com/v1/projects/${HUB_CONFIG.projectId}/databases/(default)/documents`;
   // One read over REST, as the signed-in person: no second Firestore SDK on an app's page.
   async function read(path) {
-    const token = await auth.currentUser.getIdToken();
-    const r = await fetch(`${base}/${path}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (r.status === 404) return null;
-    if (!r.ok) throw Object.assign(new Error(`The hub answered ${r.status}`), { status: r.status, code: r.status === 403 ? 'permission-denied' : 'unavailable' });
-    return decodeDoc(await r.json());
+    const stop = new AbortController();
+    try {
+      return await within(READ_MS, (async () => {
+        const token = await auth.currentUser.getIdToken();
+        const r = await fetch(`${base}/${path}`, { headers: { Authorization: `Bearer ${token}` }, signal: stop.signal });
+        if (r.status === 404) return null;
+        if (!r.ok) throw Object.assign(new Error(`The hub answered ${r.status}`), { status: r.status, code: r.status === 403 ? 'permission-denied' : 'unavailable' });
+        return decodeDoc(await r.json());
+      })());
+    } finally { stop.abort(); }
   }
   const current = () => (auth.currentUser ? { uid: auth.currentUser.uid, email: tidy(auth.currentUser.email) } : null);
 
@@ -98,7 +120,6 @@ async function firebaseProvider() {
     current,
     signIn: async (email, password) => { await fa.signInWithEmailAndPassword(auth, String(email).trim(), password); return current(); },
     signOut: () => fa.signOut(auth),
-    sendReset: (email) => fa.sendPasswordResetEmail(auth, String(email).trim()),
     changePassword: async (currentPassword, next) => {
       const user = auth.currentUser;
       // Firebase will not change a password on a stale sign-in: prove the current one first.
@@ -148,12 +169,11 @@ async function firebaseProvider() {
     async markLinked(uid, project) {
       const now = new Date().toISOString();
       const mask = [`linked.\`${project}\``, 'at'].map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
-      const token = await auth.currentUser.getIdToken();
-      const r = await fetch(`${base}/self/${uid}?${mask}`, {
+      const r = await within(READ_MS, auth.currentUser.getIdToken().then((token) => fetch(`${base}/self/${uid}?${mask}`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: { at: { stringValue: now }, linked: { mapValue: { fields: { [project]: { stringValue: now } } } } } }),
-      });
+      })));
       if (!r.ok) throw Object.assign(new Error(`The hub answered ${r.status}`), { status: r.status });
     },
   };
@@ -275,7 +295,7 @@ const ICONS = {
 /** Firebase's error codes are not sentences. Make them ones. */
 function say(e) {
   const code = String(e?.code ?? '').toLowerCase();
-  if (/invalid-credential|invalid-login|wrong-password|user-not-found|invalid-email|missing-password/.test(code)) return 'Wrong email or password.';
+  if (/invalid-credential|invalid-login|wrong-password|user-not-found|invalid-email|missing-password/.test(code)) return WRONG;
   if (code.includes('too-many-requests')) return 'Too many attempts. Wait a minute and try again.';
   if (/network|unavailable|timeout/.test(code) || /failed to fetch|load failed/i.test(String(e?.message ?? ''))) return 'No connection. Check the network and try again.';
   if (code.includes('user-disabled')) return 'That login has been disabled.';
@@ -294,7 +314,7 @@ export function createImpl() {
   let popover = null;
 
   const provider = () => (providerPromise ??= (HUB_CONFIG.apiKey
-    ? firebaseProvider()
+    ? within(START_MS, firebaseProvider())
     : import(here('../../js/fake.js')).then((m) => m.demoProvider())
   ).catch((e) => { providerPromise = null; throw e; }));
   const registry = () => (registryPromise ??= import(here('../../js/registry.js')).catch((e) => { registryPromise = null; throw e; }));
@@ -311,6 +331,34 @@ export function createImpl() {
     }
     for (const c of kids.flat()) if (c !== null && c !== undefined && c !== false) n.append(c.nodeType ? c : document.createTextNode(String(c)));
     return n;
+  }
+
+  /**
+   * "Notify the admin": an email to the hub's admin (registry.js, ADMIN_CONTACT),
+   * written for the person in their own mail app, naming the address and the
+   * app. The hub sends nothing. On a device with no mail set up it does
+   * nothing, and the person asks in person.
+   */
+  function notifyLink({ email = () => '', title = '' } = {}) {
+    const a = h('a', { class: 'shub-link', hidden: true }, 'Notify the admin');
+    let to = '';
+    let hubName = '';
+    const write = () => {
+      const who = tidy(email());
+      const what = !title || title === hubName ? 'the hub' : `${title} through the hub`;
+      a.href = `mailto:${to}?subject=${encodeURIComponent(who ? `Hub login: ${who}` : 'Hub login')}`
+        + `&body=${encodeURIComponent(`I can't sign in to ${what}${who ? ` as ${who}` : ''}. Could you check my hub login?`)}`;
+    };
+    registry().then((reg) => {
+      if (!reg.ADMIN_CONTACT) return;
+      to = reg.ADMIN_CONTACT;
+      hubName = reg.HUB_NAME;
+      write();
+      a.hidden = false;
+    }).catch(() => {});
+    // The address typed may have changed since: written again as it is opened.
+    a.addEventListener('click', () => { if (to) write(); });
+    return a;
   }
   function icon(name, size = 22) {
     const t = document.createElement('template');
@@ -426,20 +474,21 @@ export function createImpl() {
   // ---------------------------------------------------------- sign-in screen
 
   /** Draw the sign-in screen and resolve once a hub MEMBER has signed in. It never rejects: it stays up. */
-  function signInScreen() {
+  function signInScreen({ title = '' } = {}) {
     return new Promise((resolve) => {
       let done = false;
       const email = h('input', { class: 'shub-input', id: 'shub-email', type: 'email', name: 'username', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false' });
       const pw = passwordInput('shub-pass', 'current-password');
       const err = h('p', { class: 'shub-err', id: 'shub-signin-err', role: 'alert' });
-      const note = h('p', { class: 'shub-note', role: 'status', hidden: true });
-      // The demo's own line is a separate element: a failed sign-in clears `note`, and must not take this with it.
       const demoNote = h('p', { class: 'shub-note', hidden: true });
       const go = h('button', { class: 'shub-btn shub-primary', type: 'submit' }, 'Sign in');
-      const reset = h('button', { class: 'shub-link', type: 'button' }, 'Email me a reset link');
+      // NO RESET LINK (Pete, 27 Nov): Firebase's reset emails land in junk, and a
+      // mail scanner can use the link up before the person opens it. A lost
+      // password goes through the admin (Accounts, Make login again).
+      const notify = notifyLink({ email: () => email.value, title });
       const place = h('h2', { class: 'shub-place' }, '');
       const form = h('form', { class: 'shub-form', novalidate: true },
-        field('Email', email, 'shub-email'), field('Password', pw.wrap, 'shub-pass'), err, go, reset, note, demoNote);
+        field('Email', email, 'shub-email'), field('Password', pw.wrap, 'shub-pass'), err, go, notify, demoNote);
       const screen = h('div', { class: 'shub-screen', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Sign in' },
         h('div', { class: 'shub-col' }, mark(), place, form));
 
@@ -455,38 +504,28 @@ export function createImpl() {
         e.preventDefault();
         if (done || go.disabled) return;
         fail('');
-        note.hidden = true;
         if (!email.value.trim()) return fail('Enter your email address.', email);
         if (!pw.input.value) return fail('Enter your password.', pw.input);
         busy(true);
         try {
           const p = await provider();
-          const user = await p.signIn(email.value, pw.input.value);
+          const user = await within(SIGN_IN_MS, p.signIn(email.value, pw.input.value));
           const member = await memberNote(user);
           if (!member) {
             await p.signOut().catch(() => {});
             pw.input.value = '';
             busy(false);
-            return fail('That login is not set up here yet. Ask a hub master.', email);
+            return fail('That login is not set up in the hub yet: notify the admin.', email);
           }
           done = true;                 // the screen stays, busy, until the app is in or a card replaces it
           resolve(member);
         } catch (e2) {
           busy(false);
-          fail(say(e2), pw.input);
+          const words = say(e2);
+          // With no login in the hub at all, Firebase answers exactly as for a
+          // wrong password and will not say which, so the words cover both.
+          fail(words === WRONG ? `${WRONG} If the password is right, your hub login may not be set up yet: notify the admin.` : words, pw.input);
         }
-      });
-      reset.addEventListener('click', async () => {
-        const address = email.value.trim();
-        if (!address) return fail('Type your email address first.', email);
-        working(reset, 'Sending…');
-        fail('');
-        try {
-          await (await provider()).sendReset(address);
-          // Firebase answers the same whether or not the address has a login, so this cannot say "sent".
-          note.textContent = `If ${address} has a login, a link to set a password is on its way. It can take a minute, and it may land in junk.`;
-          note.hidden = false;
-        } catch (e2) { fail(say(e2)); } finally { reset.disabled = false; reset.textContent = 'Email me a reset link'; reset.style.minWidth = ''; }
       });
 
       showScreen(screen);
@@ -505,25 +544,29 @@ export function createImpl() {
   /** A full-screen message with a way on: no access, a link that needs repairing, or no connection. */
   function card(kind, { title = 'this app', user = null } = {}) {
     const n = ctx.note();
-    const who = n.kind === 'user' ? n.email : (user?.email ?? 'This login');
+    const addr = n.kind === 'user' ? n.email : (user?.email ?? '');
+    const who = addr || 'This login';
     const words = {
-      none: [`No access to ${title}`, `${who} has no role there. A hub master can give it one.`],
-      broken: [`${title} needs relinking`, `The link between ${who} and ${title} has stopped working. A hub master can relink it.`],
+      none: [`No access to ${title}`, `${who} has no role there. An admin can give it one.`],
+      broken: [`${title} needs relinking`, `The link between ${who} and ${title} has stopped working. An admin can relink it.`],
       unreachable: ['The hub cannot be reached', 'Check the connection, then try again.'],
     }[kind] ?? ['Something went wrong', 'Try again.'];
     const acts = h('div', { class: 'shub-acts' });
+    let notify = null;
     if (kind === 'unreachable') {
       acts.append(h('button', { class: 'shub-btn shub-primary', type: 'button', onclick: () => location.reload() }, 'Try again'));
+      // When the device is back online, so is this page: nobody has to find the button.
+      window.addEventListener('online', () => location.reload(), { once: true });
     } else {
       const home = h('a', { class: 'shub-btn shub-primary', href: new URL('../../', import.meta.url).pathname }, 'Open the hub');
       const out = h('button', { class: 'shub-btn', type: 'button' }, 'Sign out');
       out.addEventListener('click', async () => { working(out, 'Signing out…'); await ctx.hub.signOut(); location.reload(); });
       acts.append(home, out);
-      registry().then((reg) => { home.textContent = `Open ${reg.HUB_NAME}`; }).catch(() => {});
+      notify = notifyLink({ email: () => addr, title });
     }
     const heading = h('h2', { class: 'shub-title', id: 'shub-card-title' }, words[0]);
     showScreen(h('div', { class: 'shub-screen', role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'shub-card-title' },
-      h('div', { class: 'shub-col shub-card' }, mark(), heading, h('p', { class: 'shub-say' }, words[1]), acts)));
+      h('div', { class: 'shub-col shub-card' }, mark(), heading, h('p', { class: 'shub-say' }, words[1]), acts, notify)));
     acts.firstChild.focus();
   }
 
@@ -549,10 +592,11 @@ export function createImpl() {
       const form = h('form', { class: 'shub-form', novalidate: true }, who, field(`${title} password`, pw.wrap, 'shub-link-pass'), err, go, lost);
       const lede = h('p', { class: 'shub-say' }, `Type your current ${title} password once. After that you are signed in to it with this login.`);
       const help = h('div', { class: 'shub-form', hidden: true },
-        h('p', { class: 'shub-say' }, `Ask a hub master. They delete your old ${title} login in its Firebase console, then press Check link for you in Accounts.`),
+        h('p', { class: 'shub-say' }, `Ask an admin. They delete your old ${title} login in its Firebase console, then press Check link for you in Accounts.`),
         h('div', { class: 'shub-acts' },
           h('button', { class: 'shub-btn', type: 'button', onclick: () => { help.hidden = true; form.hidden = false; lede.hidden = false; pw.input.focus(); } }, 'Back'),
-          h('button', { class: 'shub-btn', type: 'button', onclick: async (e) => { working(e.currentTarget, 'Signing out…'); await ctx.hub.signOut(); location.reload(); } }, 'Sign out')));
+          h('button', { class: 'shub-btn', type: 'button', onclick: async (e) => { working(e.currentTarget, 'Signing out…'); await ctx.hub.signOut(); location.reload(); } }, 'Sign out')),
+        notifyLink({ email: () => email, title }));
       const screen = h('div', { class: 'shub-screen', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'shub-link-title' },
         h('div', { class: 'shub-col' }, mark(), h('div', { class: 'shub-head' }, h('h2', { class: 'shub-title', id: 'shub-link-title' }, `Link your ${title} login`), lede), form, help));
 
@@ -572,8 +616,8 @@ export function createImpl() {
         try {
           const p = await provider();
           const key = await p.readKey(user.uid, project);
-          if (!key?.k) { busy(false); return fail('This login has no key for that app now. Ask a hub master.'); }
-          await p.swapPassword({ project, email: key.email || email, current: pw.input.value, next: key.k });
+          if (!key?.k) { busy(false); return fail('This login has no key for that app now. Ask an admin.'); }
+          await within(SIGN_IN_MS, p.swapPassword({ project, email: key.email || email, current: pw.input.value, next: key.k }));
           try { await p.markLinked(user.uid, project); } catch (e2) { console.warn('[hub] could not note the link:', e2?.message ?? e2); }
           done = true;                 // stays up, busy, until the app is in
           resolve(true);
@@ -581,7 +625,7 @@ export function createImpl() {
           busy(false);
           const code = String(e2?.code ?? '').toLowerCase();
           if (/invalid-credential|invalid-login|wrong-password|user-not-found/.test(code)) fail(`That is not your ${title} password.`);
-          else if (code.includes('user-disabled')) fail(`That ${title} login has been switched off. Ask a hub master.`);
+          else if (code.includes('user-disabled')) fail(`That ${title} login has been switched off. Ask an admin.`);
           else fail(say(e2));
         }
       });
@@ -701,7 +745,7 @@ export function createImpl() {
     const links = tiles.map((t) => h('a', {
       class: 'shub-app', href: t.href, title: t.title, 'aria-current': t.current ? 'page' : null,
     }, icon(t.icon, 24), h('span', {}, t.short)));
-    const home = h('a', { class: 'shub-home', href: new URL('../../', import.meta.url).pathname }, icon('home', 18), reg.HUB_NAME);
+    const home = h('a', { class: 'shub-home', href: new URL('../../', import.meta.url).pathname }, icon('home', 18), 'The hub');
     const node = h('div', { class: 'shub-pop', role: 'dialog', 'aria-label': 'Apps' },
       h('nav', { class: 'shub-grid', 'aria-label': 'Your apps' }, links),
       h('div', { class: 'shub-foot' },
