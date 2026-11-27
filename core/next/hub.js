@@ -37,14 +37,15 @@
 //
 // WHAT connect() ANSWERS (`state`):
 //   in           the app is signed in as the hub's person: carry on
-//   legacy       the app is signed in and this device has never met the hub:
-//                carry on exactly as before (pass `strict: true` to end this)
+//   legacy       the app is signed in and this device has never met the hub,
+//                or the app has not joined yet (the registry's `joined`):
+//                carry on exactly as before (pass `strict: true` to end the first)
 //   none         signed in to the hub, but this login has no access to the app
 //   broken       it has a key, the app refused it, and the person's own fix
 //                (typing their old password for the app once) did not take
 //   unreachable  the hub could not be reached; `legacy` was called if given
 
-const BUILD = '2026-11-27.5';
+const BUILD = '2026-11-27.6';
 const CHANNEL = 'next';
 const NOTE = 'stella.hub.session';
 const CHANNEL_KEY = 'stella.hub.channel';
@@ -195,8 +196,20 @@ export function makeHub(env) {
 
     if (own && n.kind === 'user' && n.email === own) { scheduleCheck(); return { state: 'in', me: publicMe(n) }; }
     if (own && n.kind === 'none' && !opts.strict) return { state: 'legacy', me: null };
-    // Signed out of the hub, or the hub is somebody else here: the app follows.
-    if (own) { await opts.signOut?.(); own = ''; }
+    // Signed out of the hub, or the hub is somebody else here: the app follows,
+    // but only once it has JOINED. An app whose patch has shipped and whose
+    // `joined` is not set yet is left exactly as it was: shipping an app's
+    // patch changes nothing a signed-in device can see. Signing it out there
+    // would leave nothing to sign it back in, since the hub holds no key for it
+    // yet (found by material ordering's session, 27 Nov). When the hub cannot
+    // say, the app is left alone too: it fails open.
+    if (own) {
+      let joined = false;
+      try { joined = (await (await impl()).isJoined(project)) === true; } catch { joined = false; }
+      if (!joined) return { state: 'legacy', me: null };
+      await opts.signOut?.();
+      own = '';
+    }
 
     const unreachable = async (i) => {
       if (opts.legacy) { try { i?.closeScreens(); } catch { /* nothing open */ } opts.legacy(); }

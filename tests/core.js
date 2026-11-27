@@ -77,6 +77,7 @@ function fakeImpl(o = {}) {
     openSwitcher(button, info) { i.calls.push(`switcher:${info.current}`); },
     async warm() { i.calls.push('warm'); },
     async passwordDialog() { i.calls.push('password'); },
+    async isJoined() { i.calls.push('joined'); if (o.joinedFails) throw fb('unavailable'); return o.joined ?? true; },
     async confirmPassword(pw) { i.calls.push('confirm'); if (o.confirmFails) throw o.confirmFails; return Boolean(i.user) && pw === (o.hubPassword ?? 'right'); },
   };
   return i;
@@ -174,6 +175,20 @@ export async function coreTests({ test, expect, ok, setGroup }) {
     let threw = null;
     try { await down.confirmPassword('right'); } catch (e) { threw = e; }
     ok(threw, 'the hub cannot be reached: it says so, it does not answer false');
+  });
+  await test('an app that has not joined yet is left alone, even where the hub is somebody else or signed out', async () => {
+    for (const note of [userNote(), outNote()]) {
+      const impl = fakeImpl({ user: ANN, joined: false });
+      const env = setupEnv({ note, impl });
+      const app = fakeAppAuth({ email: 'bob@example.test' });
+      expect((await connect(makeHub(env), app)).state, 'legacy');
+      expect(app.signOuts, 0, 'not signed out: nothing could sign it back in');
+      ok(!impl.calls.includes('readKey') && !impl.calls.includes('screen'));
+    }
+    const failing = fakeImpl({ user: ANN, joinedFails: true });
+    const app = fakeAppAuth({ email: 'bob@example.test' });
+    expect((await connect(makeHub(setupEnv({ note: userNote(), impl: failing })), app)).state, 'legacy', 'cannot tell: fails open');
+    expect(app.signOuts, 0);
   });
   await test('a corrupt note counts as never used', async () => {
     const env = setupEnv({ note: '{{{', impl: fakeImpl() });

@@ -827,6 +827,11 @@ export function createImpl() {
     openSwitcher,
     /** Fetch what the switcher draws from, ahead of the first press. Never the sign-in. */
     warm: () => registry().then(() => {}, () => {}),
+    /** Has this project joined (registry.js)? The demo keeps its own list. Throws when it cannot be read. */
+    isJoined: async (project) => {
+      if (!HUB_CONFIG.apiKey) return Boolean((await provider()).joined?.()?.[project]);
+      return Boolean((await registry()).PROJECTS[project]?.joined);   // no Firebase loaded for this
+    },
     toast,
     /** For the hub page: the sign-in behind all this, the registry, and whether this is the demo. */
     provider,
