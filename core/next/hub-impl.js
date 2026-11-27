@@ -120,6 +120,8 @@ async function firebaseProvider() {
     current,
     signIn: async (email, password) => { await fa.signInWithEmailAndPassword(auth, String(email).trim(), password); return current(); },
     signOut: () => fa.signOut(auth),
+    // Proves a password against the signed-in hub login, as a password change does first.
+    confirm: (password) => fa.reauthenticateWithCredential(auth.currentUser, fa.EmailAuthProvider.credential(auth.currentUser.email, password)),
     changePassword: async (currentPassword, next) => {
       const user = auth.currentUser;
       // Firebase will not change a password on a stale sign-in: prove the current one first.
@@ -795,10 +797,24 @@ export function createImpl() {
     (links.find((a) => a.getAttribute('aria-current')) ?? links[0] ?? home).focus();
   }
 
+  /** Hub.confirmPassword: true or false for the person signed in to the hub here; throws only when it cannot be asked. */
+  async function confirmPassword(password) {
+    const p = await provider();
+    if (!p.current() || !password) return false;
+    try {
+      await within(SIGN_IN_MS, p.confirm(password));
+      return true;
+    } catch (e) {
+      if (/invalid-credential|invalid-login|wrong-password|user-mismatch|missing-password/.test(String(e?.code ?? '').toLowerCase())) return false;
+      throw e;
+    }
+  }
+
   // ---------------------------------------------------------------------- api
 
   return {
     attach(context) { ctx = context; },
+    confirmPassword,
     session,
     signInScreen,
     readKey: async (uid, project) => (await provider()).readKey(uid, project),

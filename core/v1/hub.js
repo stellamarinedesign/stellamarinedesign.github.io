@@ -9,6 +9,7 @@
 //     legacy:  () => showOwnForm(),                    // only while migrating
 //   });
 //   Hub.switcher(document.getElementById('hubSlot'), { current: firebaseConfig.projectId });
+//   await Hub.confirmPassword(typed)     // true or false: an app's own unlock, never a sign-in
 //
 // THIS FILE IS A CONTRACT. Every app depends on it, and an iPad can keep a
 // page alive for days, so an old copy of it will meet new data. Add to it;
@@ -43,7 +44,7 @@
 //                (typing their old password for the app once) did not take
 //   unreachable  the hub could not be reached; `legacy` was called if given
 
-const BUILD = '2026-11-27.4';
+const BUILD = '2026-11-27.5';
 const CHANNEL = 'v1';
 const NOTE = 'stella.hub.session';
 const CHANNEL_KEY = 'stella.hub.channel';
@@ -309,6 +310,14 @@ export function makeHub(env) {
       try { await (await impl()).signOut(); } catch { /* the mark is what matters */ }
     },
     async openPassword() { return (await impl()).passwordDialog(); },
+    /**
+     * Is this the hub password of the person signed in to the hub here? For an
+     * app's own unlock (material ordering's admin lock on the floor iPads),
+     * where the app's own password is a key nobody knows. True or false;
+     * rejects only when the hub cannot be reached. Nothing else happens: no
+     * sign-in, no sign-out, no screen, the note untouched. Added 27 Nov.
+     */
+    async confirmPassword(password) { return (await impl()).confirmPassword(String(password ?? '')); },
     async noAccess(title) { return (await impl()).card('none', { title: String(title ?? 'this app') }); },
     /** For the hub page and the tests: the implementation, loaded. */
     _impl: impl,

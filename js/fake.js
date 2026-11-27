@@ -321,7 +321,10 @@ export function demoProvider() {
       return current();
     },
     signOut: async () => { h.session = null; saveDemo(); },
-    sendReset: async () => {},
+    confirm: async (password) => {
+      const u = h.users[emailOf(h.session)];
+      if (!u || u.password !== password) throw fb('auth/invalid-credential');
+    },
     changePassword: async (currentPassword, next) => {
       const u = h.users[emailOf(h.session)];
       if (!u || u.password !== currentPassword) throw fb('auth/invalid-credential');

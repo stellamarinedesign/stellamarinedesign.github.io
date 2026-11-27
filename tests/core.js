@@ -77,6 +77,7 @@ function fakeImpl(o = {}) {
     openSwitcher(button, info) { i.calls.push(`switcher:${info.current}`); },
     async warm() { i.calls.push('warm'); },
     async passwordDialog() { i.calls.push('password'); },
+    async confirmPassword(pw) { i.calls.push('confirm'); if (o.confirmFails) throw o.confirmFails; return Boolean(i.user) && pw === (o.hubPassword ?? 'right'); },
   };
   return i;
 }
@@ -160,6 +161,19 @@ export async function coreTests({ test, expect, ok, setGroup }) {
     const app = fakeAppAuth({ email: 'ann@example.test' });
     expect((await connect(makeHub(env), app)).state, 'legacy');
     expect([env.loads, app.signOuts], [0, 0]);
+  });
+  await test('an app can check the hub password for its own unlock, and nothing else happens', async () => {
+    const impl = fakeImpl({ user: ANN, hubPassword: 'right' });
+    const env = setupEnv({ note: userNote(), impl });
+    const hub = makeHub(env);
+    const before = env.get(NOTE);
+    expect([await hub.confirmPassword('right'), await hub.confirmPassword('wrong'), await hub.confirmPassword()], [true, false, false]);
+    expect(impl.calls.filter((c) => c !== 'confirm'), [], 'no sign-in, no sign-out, no screen');
+    expect(env.get(NOTE), before, 'the note untouched');
+    const down = makeHub(setupEnv({ note: userNote(), impl: fakeImpl({ user: ANN, confirmFails: fb('auth/network-request-failed') }) }));
+    let threw = null;
+    try { await down.confirmPassword('right'); } catch (e) { threw = e; }
+    ok(threw, 'the hub cannot be reached: it says so, it does not answer false');
   });
   await test('a corrupt note counts as never used', async () => {
     const env = setupEnv({ note: '{{{', impl: fakeImpl() });
