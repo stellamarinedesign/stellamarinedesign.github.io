@@ -216,9 +216,10 @@ function tile(t, me, backend) {
   const chev = icon('chevRight', 18);
   chev.classList.add('t-chev');
   // The name and what goes with it wrap as one group, so a narrow tile puts
-  // the role and chips under the name instead of squeezing the name.
+  // the chips under the name instead of squeezing the name.
+  // NO ROLE HERE (Pete, 27 Nov, as in the apps): a person's role is shown on
+  // the admin's Accounts and Account log pages and nowhere else.
   const id = el('div', { class: 't-id' }, el('h2', { class: 't-name' }, t.title));
-  if (t.roleLabel) id.append(el('span', { class: 't-role' }, t.roleLabel));
   // A project still being tried: its tile is drawn for hub masters and nobody else.
   if (t.stage === 'dev') id.append(el('span', { class: 'chip' }, 'Admins only'));
   if (t.own) id.append(el('span', { class: 'chip outline' }, 'Own sign-in'));

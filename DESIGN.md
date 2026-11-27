@@ -840,10 +840,11 @@ One app, and what is waiting in it.
   links and buttons above it take the pointer, so anywhere else on the tile opens the app. With
   a mouse, hovering the door raises the tile's edge to Strong Rule. The door's focus ring is
   inset.
-- **Head row** (at least 36px): a 22px app icon in Ash, the app's name in headline type, the
-  person's role there in Muted Ash meta, any chips, and an 18px chevron in Muted Ash at the
-  right. The name, role and chips wrap as one group, so a narrow tile puts the role under the
-  name instead of squeezing the name.
+- **Head row** (at least 36px): a 22px app icon in Ash, the app's name in headline type, any
+  chips, and an 18px chevron in Muted Ash at the right. The name and chips wrap as one group,
+  so a narrow tile puts the chips under the name instead of squeezing the name. **No role**
+  (owner, 27 Nov, as in the apps): a person's role shows only on the admin's Accounts and Account
+  log pages.
 - **Label:** one uppercase label over the lines, in the app's own words, with the count bubble
   beside it. It sits 14px under the head row.
 - **Lines:** up to three. Each is at least 56px: a title in body strong over a sub-line in
