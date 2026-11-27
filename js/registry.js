@@ -94,7 +94,8 @@ export const PROJECTS = {
       appId: '1:999530935622:web:e6798dc5b4edbe54142147',
     },
     appCheck: '6LcvOCctAAAAAFXUhpQRg2c09P1g5l7qULqwZCbh',
-    card: null,
+    // Orders waiting, for managers (its 2026-11-27.11).
+    card: '/material-ordering/js/hub-card.js',
     access: {
       doc: ['settings', 'access'],
       roles: [

@@ -12,6 +12,8 @@
 //       items: [{ title, sub, when, href, late }],   // up to three are shown
 //       href: '/material-ordering/manager.html',     // optional: where the label goes
 //       empty: 'No orders waiting.',      // optional: said when items is empty
+//       cleared: true,                    // optional: nothing waiting is GOOD NEWS: the
+//                                         //   empty words under a green tick (27 Nov)
 //     };
 //   }
 //
@@ -47,19 +49,22 @@ export function normaliseCard(raw) {
     .slice(0, MAX_ITEMS)
     .map((i) => ({ title: text(i.title, 120), sub: text(i.sub, 120), when: text(i.when, 24), href: sitePath(i.href), late: i.late === true }));
   const count = Number.isFinite(raw.count) && raw.count > 0 ? Math.min(Math.floor(raw.count), 999) : null;
-  return { title: text(raw.title, 40), count, items, href: sitePath(raw.href), empty: text(raw.empty, 80) };
+  return { title: text(raw.title, 40), count, items, href: sitePath(raw.href), empty: text(raw.empty, 80), cleared: raw.cleared === true };
 }
 
 // HOW MUCH ROOM A CARD TOOK LAST TIME, so this time its tile starts that size:
 // its number of lines, 0 for "nothing waiting", -1 for no card at all. Kept by
 // this browser, per person (views/launcher.js); a convenience and never more.
 export const NO_CARD = -1;
+// A cleared card (its `cleared`, with nothing waiting) stands as tall as two lines.
+const CLEARED_ROOM = 2;
 
 /** What to remember of a load. null: it failed, so what was remembered stands. */
 export function roomOf(got) {
   if (got.state === 'none') return NO_CARD;
   if (got.state === 'link') return 0;                  // one quiet line, as "nothing waiting"
-  return got.state === 'ready' ? got.card.items.length : null;
+  if (got.state !== 'ready') return null;
+  return got.card.items.length || (got.card.cleared ? CLEARED_ROOM : 0);
 }
 
 /** What was kept, made safe to use. */

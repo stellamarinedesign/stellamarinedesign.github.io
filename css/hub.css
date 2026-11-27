@@ -139,6 +139,12 @@ a.line:hover { background: var(--bg); }
 .l-sub { grid-column: 1; color: var(--text3); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .l-when { grid-column: 2; grid-row: 1 / span 2; color: var(--text2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .l-when.late { color: var(--amber-text); }
+/* A card whose empty state is good news (its `cleared`): the family's green
+   tick above the empty words, still, in two lines' room (113px). */
+.t-cleared { display: grid; justify-items: center; align-content: center; gap: var(--sp-2); min-height: 113px; text-align: center; }
+.t-cleared p { font-weight: 600; text-wrap: balance; }
+.t-tick { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--green-bg); color: var(--green); }
+.t-tick svg { stroke-width: 2.6; }
 .t-quiet { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); color: var(--text3); font-size: var(--fs-sm); padding: 14px 0 6px; }
 .t-foot { display: flex; flex-wrap: wrap; gap: 0 var(--sp-4); margin-top: var(--sp-2); padding-top: var(--sp-2); border-top: 1px solid var(--border); font-size: var(--fs-sm); }
 /* Page links are quiet: on this page the only red is the header rule, the

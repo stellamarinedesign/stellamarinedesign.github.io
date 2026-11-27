@@ -852,6 +852,12 @@ One app, and what is waiting in it.
   tabular figures. Lines are divided by 1px Chip Grey rules. A line with somewhere to go is its
   own door to that one thing: hover fills it with Band, 8px wider than the text on each side,
   with 8px corners.
+- **Nothing waiting:** the card's empty words, one quiet line in Muted Ash meta. **Cleared**
+  (owner, 27 Nov), when the card says an empty list is good news (`cleared`): a 44px circle in
+  the family's green fill with a 24px tick in its green, stroke 2.6, above the empty words in
+  body strong, centred in two lines' room (113px). Drawn still: nothing on this page animates as
+  it loads, and cards are read when it opens, so there is never a queue emptying in front of
+  anyone. Material ordering's manager page draws its own tick on when its queue empties live.
 - **Late mark:** when an app marks a line as late (a date that has passed, the oldest thing
   waiting), its date or age is set in amber text. A screen reader also hears "late".
 - **Nothing waiting:** one quiet line in Muted Ash meta.

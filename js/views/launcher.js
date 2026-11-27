@@ -270,7 +270,11 @@ async function fill(face, t, me, backend) {
   const label = el('div', { class: 't-label' }, card.title || 'Now');
   if (card.count) label.append(el('span', { class: 'count', 'aria-label': `${card.count} waiting` }, card.count > 99 ? '99+' : String(card.count)));
   if (!card.items.length) {
-    face.replaceChildren(label, el('div', { class: 't-quiet' }, card.empty || 'Nothing waiting.'));
+    // Good news, when the card says so: the family's green tick, drawn still
+    // (nothing on this page animates as it loads).
+    face.replaceChildren(label, card.cleared
+      ? el('div', { class: 't-cleared' }, el('span', { class: 't-tick', 'aria-hidden': 'true' }, icon('check', 24)), el('p', {}, card.empty || 'Nothing waiting.'))
+      : el('div', { class: 't-quiet' }, card.empty || 'Nothing waiting.'));
     return;
   }
   face.replaceChildren(label, el('ul', { class: 'lines' }, card.items.map((i) => el('li', {}, line(i)))));

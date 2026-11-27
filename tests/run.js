@@ -879,6 +879,10 @@ export async function run() {
     expect(tidyRooms({ a: 3, b: 0, c: NO_CARD, d: 4, e: -2, f: '3', g: 1.5 }), { a: 3, b: 0, c: NO_CARD });
     for (const bad of [null, 'x', 7, [], undefined]) expect(tidyRooms(bad), {});
     expect([roomFor({ a: 0 }, 'a'), roomFor({ a: NO_CARD }, 'a'), roomFor({}, 'a')], [0, NO_CARD, 1]);
+    // An empty card that is good news stands as tall as two lines.
+    expect(roomOf({ state: 'ready', card: { items: [], cleared: true } }), 2);
+    expect(roomOf({ state: 'ready', card: { items: [{}], cleared: true } }), 1, 'with lines, its lines count');
+    expect([normaliseCard({ title: 'T', items: [], cleared: true }).cleared, normaliseCard({ title: 'T', items: [], cleared: 'yes' }).cleared, normaliseCard({ title: 'T' }).cleared], [true, false, false]);
   });
   await test('a link from a card stays on this site', () => {
     expect(sitePath('/material-ordering/manager.html'), '/material-ordering/manager.html');
@@ -912,7 +916,7 @@ export async function run() {
     expect(card.items.map((i) => i.title), ['One', 'Two', 'Three'], 'three lines at most, and only real ones');
     expect(card.items[0], { title: 'One', sub: 'A', when: '2 h', href: '/material-ordering/', late: true });
     expect(card.items[1].href, null);
-    expect(normaliseCard({ title: 'x', count: 0, items: 'no' }), { title: 'x', count: null, items: [], href: null, empty: '' });
+    expect(normaliseCard({ title: 'x', count: 0, items: 'no' }), { title: 'x', count: null, items: [], href: null, empty: '', cleared: false });
     for (const bad of [null, undefined, 'text', 7]) expect(normaliseCard(bad), null);
   });
   await test('a card that fails, hangs or has nothing costs only its own tile', async () => {
