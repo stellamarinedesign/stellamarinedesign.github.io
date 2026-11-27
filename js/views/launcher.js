@@ -252,6 +252,12 @@ async function fill(face, t, me, backend) {
   if (now !== null) { rooms.set(me.uid, t.id, now); delete face.dataset.room; }
 
   if (got.state === 'none') { face.replaceChildren(); return; }
+  // Not linked there yet: nothing has failed, the person has one step to take.
+  if (got.state === 'link') {
+    face.replaceChildren(el('div', { class: 't-quiet', role: 'status' }, 'Sign in once to see what is waiting here.',
+      el('a', { class: 'btn small', href: t.href }, `Sign in to ${t.title}`)));
+    return;
+  }
   if (got.state === 'failed') {
     const again = el('button', { class: 'btn small', type: 'button' }, 'Try again');
     again.addEventListener('click', () => fill(face, t, me, backend));

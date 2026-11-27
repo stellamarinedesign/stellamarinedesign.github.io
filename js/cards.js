@@ -23,6 +23,8 @@
 // A card that is slow, broken or missing costs its own tile a line of text and
 // nothing else: each loads by itself, with a time limit.
 
+import { kindOf } from './errors.js';
+
 const LIMIT = 8000;
 const MAX_ITEMS = 3;
 
@@ -56,6 +58,7 @@ export const NO_CARD = -1;
 /** What to remember of a load. null: it failed, so what was remembered stands. */
 export function roomOf(got) {
   if (got.state === 'none') return NO_CARD;
+  if (got.state === 'link') return 0;                  // one quiet line, as "nothing waiting"
   return got.state === 'ready' ? got.card.items.length : null;
 }
 
@@ -74,6 +77,10 @@ export const roomFor = (rooms, pid) => rooms[pid] ?? 1;
  * One tile's card.
  *   { state: 'none' }            the app supplies none, or has nothing for this person
  *   { state: 'ready', card }     drawn as lines (or its `empty` words when there are none)
+ *   { state: 'link' }            this person's login there is not linked yet
+ *                                (Waiting), or the app refused its key: they
+ *                                sign in to the app once, and the hub's own
+ *                                screen there links it. Not a failure.
  *   { state: 'failed' }          it threw, or took too long
  */
 export async function loadCard(backend, tile, me, { limit = LIMIT } = {}) {
@@ -88,6 +95,8 @@ export async function loadCard(backend, tile, me, { limit = LIMIT } = {}) {
     const card = normaliseCard(raw);
     return card ? { state: 'ready', card } : { state: 'none' };
   } catch (e) {
+    const kind = kindOf(e);
+    if (kind === 'not-linked' || kind === 'credential') return { state: 'link' };
     console.warn(`[hub] ${tile.id} card:`, e?.message ?? e);
     return { state: 'failed' };
   } finally {

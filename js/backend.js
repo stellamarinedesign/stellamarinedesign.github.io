@@ -38,7 +38,10 @@ async function demoBackend() {
     app: (pid) => F.fakeApp(w, pid, { as: w.hub.people[uid]?.links?.[pid]?.linked ? email : null, onChange: F.saveDemo }),
     joined: () => ({ ...w.joined }),
     hasCard: (pid) => Boolean(F.DEMO_CARDS[pid]),
-    card: (pid, ctx) => F.DEMO_CARDS[pid](ctx),
+    card: async (pid, ctx) => {
+      if (!w.hub.people[uid]?.links?.[pid]?.linked && !w.hub.self?.[uid]?.linked?.[pid]) throw new HubError('not-linked', 'Not linked to that app yet.');
+      return F.DEMO_CARDS[pid](ctx);
+    },
     // Demo only: look at the hub as somebody else, or start it over.
     people: () => Object.entries(w.hub.people).map(([id, p]) => ({ uid: id, name: p.name, email: p.email })),
     viewAs: (id) => { w.hub.session = id; F.saveDemo(); },
@@ -163,6 +166,23 @@ async function realBackend(impl) {
     };
   }
 
+  // WHICH APPS THIS PERSON HAS LINKED, looked at once in a while rather than
+  // per card: their directory entry, and the marks they leave themselves when
+  // they link in the app (the directory catches up when an admin next opens
+  // Accounts). A login still waiting for its owner is not signed in with a key
+  // the app would refuse: refused sign-ins add up, and Firebase then refuses
+  // the person's real one for a while.
+  let linksAt = 0;
+  let links = null;
+  async function linkedTo(pid) {
+    if (!links || Date.now() - linksAt > 30000) {
+      linksAt = Date.now();
+      links = Promise.all([hub.getPerson(me().uid), hub.getSelf(me().uid)]).catch((e) => { links = null; throw e; });
+    }
+    const [person, self] = await links;
+    return Boolean(person?.links?.[pid]?.linked || self?.linked?.[pid]);
+  }
+
   return {
     demo: false,
     hub,
@@ -171,6 +191,7 @@ async function realBackend(impl) {
     hasCard: (pid) => Boolean(PROJECTS[pid]?.card),
     // The app's own card module, handed a read handle for its project as this person.
     card: async (pid, ctx) => {
+      if (!(await linkedTo(pid))) throw new HubError('not-linked', 'Not linked to that app yet.');
       const mod = await import(PROJECTS[pid].card);
       const { db } = await mine(pid);
       return mod.card({ db, fs, ...ctx });

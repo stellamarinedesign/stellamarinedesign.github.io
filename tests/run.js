@@ -923,6 +923,12 @@ export async function run() {
     try {
       const b = (card) => ({ hasCard: () => true, card });
       expect((await loadCard(b(async () => { throw new Error('boom'); }), tile, me)).state, 'failed');
+      // Not linked there yet, or its key refused: a step for the person, not a failure.
+      expect((await loadCard(b(async () => { throw new HubError('not-linked', 'x'); }), tile, me)).state, 'link');
+      expect((await loadCard(b(async () => { throw Object.assign(new Error('x'), { code: 'auth/invalid-credential' }); }), tile, me)).state, 'link');
+      expect((await loadCard(b(async () => { throw Object.assign(new Error('x'), { code: 'auth/network-request-failed' }); }), tile, me)).state, 'failed');
+      expect((await loadCard(b(async () => { throw Object.assign(new Error('x'), { code: 'permission-denied' }); }), tile, me)).state, 'failed');
+      expect(roomOf({ state: 'link' }), 0, 'held as one quiet line');
       expect((await loadCard(b(() => new Promise(() => {})), tile, me, { limit: 20 })).state, 'failed');
       expect((await loadCard(b(async () => null), tile, me)).state, 'none');
       expect((await loadCard(b(async () => ({ title: 'T', items: [] })), tile, me)).state, 'ready');

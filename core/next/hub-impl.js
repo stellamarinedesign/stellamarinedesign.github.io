@@ -339,15 +339,15 @@ export function createImpl() {
    * app. The hub sends nothing. On a device with no mail set up it does
    * nothing, and the person asks in person.
    */
-  function notifyLink({ email = () => '', title = '' } = {}) {
-    const a = h('a', { class: 'shub-link', hidden: true }, 'Notify the admin');
+  function notifyLink({ email = () => '', title = '', body = null, primary = false } = {}) {
+    const a = h('a', { class: primary ? 'shub-btn shub-primary' : 'shub-link', hidden: true }, 'Notify the admin');
     let to = '';
     let hubName = '';
     const write = () => {
       const who = tidy(email());
       const what = !title || title === hubName ? 'the hub' : `${title} through the hub`;
       a.href = `mailto:${to}?subject=${encodeURIComponent(who ? `Hub login: ${who}` : 'Hub login')}`
-        + `&body=${encodeURIComponent(`I can't sign in to ${what}${who ? ` as ${who}` : ''}. Could you check my hub login?`)}`;
+        + `&body=${encodeURIComponent(body ?? `I can't sign in to ${what}${who ? ` as ${who}` : ''}. Could you check my hub login?`)}`;
     };
     registry().then((reg) => {
       if (!reg.ADMIN_CONTACT) return;
@@ -591,12 +591,17 @@ export function createImpl() {
       const lost = h('button', { class: 'shub-link', type: 'button' }, "I don't know it");
       const form = h('form', { class: 'shub-form', novalidate: true }, who, field(`${title} password`, pw.wrap, 'shub-link-pass'), err, go, lost);
       const lede = h('p', { class: 'shub-say' }, `Type your current ${title} password once. After that you are signed in to it with this login.`);
+      // The person's whole answer is the admin (Pete, 27 Nov). What the admin
+      // then does (delete the old login in its console, Check link in Accounts)
+      // is theirs to know, in SETUP.md, not this screen's to say.
+      const ask = notifyLink({
+        email: () => email, title, primary: true,
+        body: `I don't know my old ${title} password, so I can't link it to the hub${email ? ` (${email})` : ''}. Could you reset it?`,
+      });
       const help = h('div', { class: 'shub-form', hidden: true },
-        h('p', { class: 'shub-say' }, `Ask an admin. They delete your old ${title} login in its Firebase console, then press Check link for you in Accounts.`),
-        h('div', { class: 'shub-acts' },
-          h('button', { class: 'shub-btn', type: 'button', onclick: () => { help.hidden = true; form.hidden = false; lede.hidden = false; pw.input.focus(); } }, 'Back'),
-          h('button', { class: 'shub-btn', type: 'button', onclick: async (e) => { working(e.currentTarget, 'Signing out…'); await ctx.hub.signOut(); location.reload(); } }, 'Sign out')),
-        notifyLink({ email: () => email, title }));
+        h('p', { class: 'shub-say' }, `Ask the admin to reset your ${title} password. Until then you stay signed out here.`),
+        ask,
+        h('button', { class: 'shub-link', type: 'button', onclick: () => { help.hidden = true; form.hidden = false; lede.hidden = false; pw.input.focus(); } }, 'Back'));
       const screen = h('div', { class: 'shub-screen', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'shub-link-title' },
         h('div', { class: 'shub-col' }, mark(), h('div', { class: 'shub-head' }, h('h2', { class: 'shub-title', id: 'shub-link-title' }, `Link your ${title} login`), lede), form, help));
 
@@ -607,7 +612,7 @@ export function createImpl() {
       };
       const busy = (on) => { go.disabled = on; go.textContent = on ? 'Linking…' : 'Link login'; };
       pw.input.addEventListener('input', () => { if (err.textContent) fail(''); });
-      lost.addEventListener('click', () => { form.hidden = true; lede.hidden = true; help.hidden = false; });
+      lost.addEventListener('click', () => { form.hidden = true; lede.hidden = true; help.hidden = false; (ask.hidden ? help.querySelector('button') : ask).focus(); });
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (done || go.disabled) return;
